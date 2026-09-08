@@ -29,11 +29,22 @@ A real athlete can complete the following loop through ordinary use:
 5. browse that plan day by day in the app;
 6. start a planned workout;
 7. record useful exercise/session actuals while training;
-8. add qualitative feedback conversationally or through lightweight app input;
-9. record selected athlete metrics;
-10. inspect understandable progress;
-11. return to the GPT and receive coaching grounded in the accumulated ledger;
-12. use that evidence to create the next week.
+8. report or upload workout evidence to the GPT, including screenshots and supported files;
+9. add qualitative feedback conversationally or through lightweight app input;
+10. record selected athlete metrics;
+11. inspect understandable progress;
+12. return to the GPT and receive coaching grounded in the accumulated ledger;
+13. use that evidence to create the next week.
+
+## Core intelligence principle
+
+All semantic parsing, interpretation and coaching reasoning happens in the LLM.
+
+The GPT is responsible for understanding athlete language, screenshots and supported uploaded workout files, extracting useful structured facts, interpreting what those facts mean, and deciding what concise coaching insight should be persisted.
+
+The harness validates and stores structured state. It must not become a parallel evidence parser or coaching engine.
+
+Code may perform literal deterministic work needed for integrity or display, such as schema/unit validation, stable arithmetic or date comparisons, but it must not infer workout meaning or make coaching decisions.
 
 ## Hero journey: weekly planning
 
@@ -80,13 +91,19 @@ The execution UI should favour fast recording over administrative completeness.
 
 ## Hero journey: report what happened
 
-The athlete can record actuals directly in the app and can also talk to Coach about the session.
+The athlete can record actuals directly in the app, tell Coach what happened conversationally, or provide evidence inside the GPT conversation.
 
 Example:
 
 > `I did the bench but 16kg was rough. I got 10, 9, 8 and the last set was basically failure.`
 
-Coach should be able to associate that feedback with the relevant completed session and preserve the useful factual/qualitative distinction.
+Or the athlete may upload a screenshot from a workout app or a supported workout file such as `.fit`.
+
+Coach should inspect and parse that evidence in the LLM, associate it with the correct athlete/session, resolve ambiguity conversationally when necessary, and use bounded Actions to persist useful structured facts, athlete feedback and concise coaching interpretation.
+
+The backend validates the proposed structured write but does not independently re-parse the source evidence.
+
+Coach must not invent unavailable values. If the evidence does not support a field or the GPT cannot reliably inspect a file format, it should say so rather than fabricate or silently route semantic parsing to an unplanned server component.
 
 ## Hero journey: understand progress
 
@@ -133,10 +150,10 @@ This information architecture is provisional and should be challenged against re
 ### Training intent
 
 - training priorities;
-- specific goals;
+- qualitative and quantitative goals;
 - optional target dates;
-- dated race/event where relevant;
-- progress measures and current coaching assessment.
+- dated event/race where relevant;
+- progress indicators and current coaching assessment.
 
 ### Locations and equipment
 
@@ -167,13 +184,16 @@ This information architecture is provisional and should be challenged against re
 - useful cycling/Zwift prescription structure;
 - coaching notes/tips.
 
-### Workout actuals
+### Workout actuals and athlete-provided evidence
 
 - start/in-progress/completion state;
 - strength set-level actuals where relevant;
 - session-level actual/result details for run/cycle/manual activities;
 - adapted/partial/moved/skipped distinctions where useful;
-- qualitative feedback.
+- qualitative feedback;
+- GPT-side parsing of workout screenshots and supported uploaded files;
+- provenance indicating values extracted from athlete-provided evidence;
+- bounded persistence of useful Coach interpretation linked to relevant evidence.
 
 ### Metrics
 
@@ -182,17 +202,21 @@ This information architecture is provisional and should be challenged against re
 - visual trend for selected metrics;
 - source/provenance field so later automatic ingestion does not require a redesign.
 
-### Coaching observations
+### Coaching observations / insights
 
-- bounded athlete-specific observations/hypotheses;
-- clear distinction from trusted facts;
-- enough evidence/provenance to avoid silent overgeneralisation.
+- bounded athlete-specific observations or conclusions;
+- clear distinction from trusted facts and athlete feedback;
+- evidence references/context sufficient to avoid silent overgeneralisation;
+- no hidden chain-of-thought storage.
 
 ## GPT responsibilities in MVP
 
 The Custom GPT should:
 
 - establish the active athlete when ambiguous;
+- parse athlete-provided natural language, screenshots and supported uploaded workout files;
+- extract useful structured facts from athlete evidence;
+- resolve ambiguity conversationally where necessary;
 - interpret conversational availability and training feedback;
 - propose weekly programming based on current athlete state;
 - explain important programme choices;
@@ -200,15 +224,16 @@ The Custom GPT should:
 - interpret actual performance and metric trends;
 - make qualitative progression judgements;
 - recommend substitutions that preserve training intent when circumstances change;
+- decide what concise coaching insight is useful to persist;
 - express the athlete-specific trainer persona.
 
 The GPT must not:
 
 - infer authority from conversational identity alone;
-- invent athlete history when state is unavailable;
-- claim a plan/workout/metric write succeeded without an Action result;
+- invent athlete history or evidence fields when state is unavailable;
+- claim a plan/workout/metric/insight write succeeded without an Action result;
 - silently overwrite a locked baseline plan;
-- turn one qualitative comment into an established athlete trait;
+- turn one qualitative comment or ambiguous extraction into an established athlete trait;
 - persist hidden reasoning as athlete state.
 
 ## Harness responsibilities in MVP
@@ -223,11 +248,14 @@ Product code should own:
 - workout prescriptions and actuals;
 - metrics;
 - source/provenance;
-- validation and idempotency;
+- persisted coaching insights and evidence references;
+- schema/unit validation and idempotency;
 - state/history needed for planned-versus-actual comparison;
-- deterministic progress calculations that should not depend on GPT arithmetic;
+- literal deterministic calculations/comparisons needed for integrity or display;
 - bounded Action contracts;
 - app inspection/direct-edit surfaces.
+
+Product code must not become a semantic workout-file parser, image interpreter, progression engine or coaching decision layer.
 
 ## Explicit MVP exclusions
 
@@ -247,7 +275,10 @@ Unless later promoted through a deliberate scope decision, the first MVP does **
 - social/community features;
 - public marketplace/onboarding/commercial subscription flows;
 - broad medical or diagnostic functionality;
-- complex recovery/readiness scoring.
+- complex recovery/readiness scoring;
+- a server-side semantic parser for workout screenshots or files.
+
+Athlete-provided screenshots and supported files inside the GPT conversation are not automatic external ingestion and are included in the MVP evidence model.
 
 ## MVP quality bar
 
@@ -260,6 +291,7 @@ In particular:
 - actuals must not disappear or silently overwrite prescriptions;
 - locked-plan adaptations must remain intelligible;
 - workout logging must be fast enough to use during a real session;
+- evidence extraction must preserve provenance and uncertainty rather than fabricate completeness;
 - progress should feel useful and encouraging rather than mechanically gamified;
 - the GPT should be able to answer common coaching questions without requiring the athlete to restate durable context.
 
@@ -271,12 +303,13 @@ After real use, ask:
 2. Does the generated week fit real availability and equipment well enough to trust?
 3. Is the app genuinely useful during a workout, or easier to ignore?
 4. Does recording actuals feel proportionate to the coaching value returned?
-5. Does qualitative feedback meaningfully change later advice without causing overreaction?
-6. Can the athlete see progress in a way that feels motivating and credible?
-7. Does the trainer make noticeably better decisions because it remembers previous sessions and metrics?
-8. Are athlete identity boundaries trusted in shared-GPT use?
-9. Which structured fields create admin without improving coaching?
-10. Would the athlete voluntarily use Coach to plan the following week?
+5. Can the athlete hand Coach a screenshot/file and get useful, trustworthy ledger updates without manual transcription?
+6. Does qualitative feedback meaningfully change later advice without causing overreaction?
+7. Can the athlete see progress in a way that feels motivating and credible?
+8. Does the trainer make noticeably better decisions because it remembers previous sessions and metrics?
+9. Are athlete identity boundaries trusted in shared-GPT use?
+10. Which structured fields create admin without improving coaching?
+11. Would the athlete voluntarily use Coach to plan the following week?
 
 ## Exit from MVP validation
 
