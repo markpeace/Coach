@@ -17,6 +17,8 @@ see prescription and relevant progression context
   ↓
 record what actually happens
   ↓
+optionally provide screenshot/file evidence to Coach
+  ↓
 adapt where necessary
   ↓
 complete
@@ -25,6 +27,16 @@ brief feedback
   ↓
 ledger updated
 ```
+
+## Intelligence boundary
+
+All semantic parsing and coaching reasoning happens in the LLM.
+
+Coach may understand athlete language, screenshots and supported uploaded workout files, extract the useful factual content, interpret it against the athlete's plan/history, and decide what structured actuals, feedback associations and concise coaching insight should be persisted.
+
+The backend validates and stores the structured result. It does not independently inspect the source image/file to determine workout meaning and must not grow a second workout-understanding or coaching engine.
+
+Code may perform literal deterministic work needed for integrity or display, but semantic extraction, interpretation and progression judgement remain with Coach.
 
 ## Prescription, effective session and actual
 
@@ -151,7 +163,7 @@ Manual actual entry may include:
 - perceived difficulty;
 - optional note.
 
-The same actual may also be created conversationally when the athlete tells Coach what happened.
+The same actual may also be created conversationally or from athlete-provided evidence interpreted by the GPT.
 
 GPS, route capture and live heart-rate capture are explicitly outside MVP.
 
@@ -169,7 +181,44 @@ A cycling prescription may include:
 
 Manual actuals may include completion, duration, power/heart-rate fields where useful, perceived difficulty and notes.
 
+A screenshot or supported uploaded workout file may provide richer evidence. Coach parses and interprets that evidence in the LLM and writes the useful structured result through bounded Actions.
+
 Coach does not execute or control Zwift/smart-trainer workouts in MVP.
+
+## Athlete-provided workout evidence
+
+Ad hoc evidence upload is part of the MVP coaching experience.
+
+Examples include:
+
+- screenshot from a running/cycling/strength app;
+- screenshot from Zwift or another workout summary;
+- supported uploaded workout files such as `.fit` where the current ChatGPT surface can inspect them;
+- other athlete-provided files/images containing workout evidence.
+
+The desired interaction is simple:
+
+> `Here's today's run.`
+
+or
+
+> `Look at this Zwift workout.`
+
+Coach should:
+
+1. inspect the evidence in the LLM;
+2. extract only values genuinely supported by the evidence;
+3. read the relevant planned session/history from the ledger where useful;
+4. ask a focused follow-up only when an important ambiguity cannot be resolved;
+5. interpret what happened as a coach;
+6. use bounded Actions to persist the relevant structured actuals, athlete feedback and concise coaching insight;
+7. preserve source/provenance indicating athlete-provided evidence.
+
+The backend validates the structured write but does not re-parse the source evidence.
+
+If a file format cannot be inspected reliably in the GPT surface, Coach should say so and request another representation such as a screenshot/export rather than inventing data or silently introducing a server-side semantic parser.
+
+Raw uploaded evidence does not need to be retained in the durable Coach ledger for MVP. Persist the useful extracted facts, provenance and coaching conclusion instead.
 
 ## Adaptation during execution
 
@@ -209,9 +258,11 @@ What objectively changed, such as `used 14kg instead of 16kg`.
 
 ### Coach interpretation
 
-A bounded hypothesis such as `possible accumulated upper-body fatigue`.
+A bounded conclusion/hypothesis such as `possible accumulated upper-body fatigue`.
 
 These should not collapse into one undifferentiated notes field.
+
+Coach interpretation may be persisted with relevant evidence references/context, but hidden chain-of-thought must never be stored.
 
 ## Today experience
 
@@ -229,7 +280,7 @@ For example:
 
 > I did the bench. 16kg was rough. I got 10, 9, 8 and the final set was basically failure.
 
-Coach should use bounded operations to attach the factual actuals and qualitative feedback to the correct active session. It must not claim the ledger was updated unless the write succeeds.
+Coach should parse that statement, distinguish factual actuals from athlete feedback, interpret it where useful, and use bounded operations to attach the resulting structured state to the correct active session. It must not claim the ledger was updated unless the write succeeds.
 
 ## MVP boundary
 
@@ -244,7 +295,10 @@ Coach should use bounded operations to attach the factual actuals and qualitativ
 - accepted adaptations/substitutions while preserving baseline;
 - lightweight structured feedback;
 - manual run/cycle actual entry;
-- conversational actual/feedback logging.
+- conversational actual/feedback logging;
+- GPT-side parsing of athlete-provided workout screenshots;
+- GPT-side parsing of supported workout files where the ChatGPT surface can inspect them;
+- bounded persistence of useful extracted facts, provenance and Coach insight.
 
 ### Defer
 
@@ -254,7 +308,8 @@ Coach should use bounded operations to attach the factual actuals and qualitativ
 - native Watch execution;
 - WorkoutKit;
 - smart-trainer telemetry/control;
-- sophisticated exercise-video/library functionality.
+- sophisticated exercise-video/library functionality;
+- server-side semantic parsing of screenshots/workout files.
 
 ## MVP learning focus
 
@@ -263,7 +318,8 @@ Real use should establish:
 - whether Coach makes the workout easier to execute;
 - whether logging is fast enough that athletes actually use it;
 - whether prescription versus actual remains intelligible;
-- whether later programming becomes better because actual history exists;
+- whether screenshots/files reduce manual transcription without introducing untrustworthy extraction;
+- whether later programming becomes better because actual history and persisted coaching insight exist;
 - which structured fields create friction without returning meaningful coaching value.
 
 Fields that do not improve coaching should be removed aggressively rather than retained for completeness.
