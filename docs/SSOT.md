@@ -24,6 +24,7 @@ If sources conflict, surface the conflict rather than silently choosing a lower-
 - `docs/product/product-definition.md`: landed product purpose, user model, experience principles and known domain concepts.
 - `docs/product/athlete-foundation.md`: current athlete identity, persona, priorities, qualitative/quantitative goal model, events, locations/equipment and metrics foundation.
 - `docs/product/weekly-planning.md`: current weekly planning ritual, availability, temporary context, plan lifecycle, session intent, adaptation and athlete preference model.
+- `docs/product/workout-execution.md`: current workout execution model, prescription/effective/actual separation, modality-aware logging, adaptation and feedback boundary.
 - `docs/product/mvp-definition.md`: current MVP hypothesis, hero journeys, included capability boundary and exclusions.
 - `docs/product/future-possibilities.md`: credible non-MVP pathways that should not silently enter current delivery.
 
@@ -33,7 +34,7 @@ If sources conflict, surface the conflict rather than silently choosing a lower-
 
 ## Delivery state
 
-Coach is currently moving from Discovery into MVP design. The Athlete foundation and weekly planning segments have landed; workout execution and progress/learning remain under MVP design.
+Coach is currently moving from Discovery into MVP design. The Athlete foundation, weekly planning and workout execution segments have landed; progress/learning remains under MVP design.
 
 There is no dedicated Coach Linear team recorded in this repository yet. Do not invent active issues or roadmap commitments in GitHub. Once Linear is established, update this document and `README.md` to route active delivery there.
 
