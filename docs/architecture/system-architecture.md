@@ -4,13 +4,15 @@ Status: Current at product-architecture level; implementation details remain sub
 
 ## Architecture intent
 
-Coach is a multi-athlete product with an LLM-reasoned coaching surface and code-grounded durable training state.
+Coach is a multi-athlete product with an LLM-owned reasoning and evidence-understanding surface plus code-grounded durable training state.
 
 ```text
 Athlete
    |
    +--> Shared/private Custom GPT
-   |       conversation, interpretation, coaching judgement
+   |       conversation
+   |       parsing / extraction
+   |       interpretation / coaching judgement
    |               |
    |               +--> bounded versioned Coach Action API
    |
@@ -22,7 +24,24 @@ Athlete
                              +--> durable PostgreSQL athlete ledger
 ```
 
-The GPT and application must not maintain competing memories. Athlete facts, plans, actuals and metrics live behind the shared application/API boundary.
+The GPT and application must not maintain competing memories. Athlete facts, plans, actuals, metrics and persisted coaching insight live behind the shared application/API boundary.
+
+## Core intelligence principle
+
+**The LLM is the sole semantic reasoning layer for Coach.**
+
+This includes both:
+
+- parsing/extracting meaning from athlete-provided natural language, screenshots and supported uploaded files;
+- interpreting training evidence and making coaching judgements.
+
+The backend must not grow a parallel workout-understanding or coaching engine.
+
+The harness exists to provide trusted structured state, bounded reads/writes, validation, identity boundaries, provenance, versioning and persistence.
+
+Code may perform literal deterministic operations where useful for integrity or display, for example unit validation, arithmetic derived values, date comparisons or stable aggregations. These operations must not become semantic interpretation. Code should not decide that a file contains a particular workout structure, infer the intended stimulus, judge whether an athlete progressed, or decide what the programme should do next.
+
+Persist the useful outputs of LLM reasoning, not hidden chain-of-thought. A stored coaching insight may include a concise conclusion, relevant evidence references, confidence/context where useful, and a coaching implication.
 
 ## Expected technical foundation
 
@@ -37,7 +56,7 @@ Coach is intended to follow the proven Alfred/Carme family pattern:
 
 These are architecture directions rather than permission to copy another product's implementation wholesale. Exact authentication, deployment topology and data schema must be decided for Coach itself.
 
-No backend model API is required by default. The Custom GPT is the coaching intelligence layer unless later evidence demonstrates a concrete need for additional model services.
+No backend model API is required by default. The Custom GPT is the intelligence layer unless later evidence demonstrates a concrete need for additional model services.
 
 ## Identity model
 
@@ -57,17 +76,21 @@ The exact MVP authentication model is not yet frozen. Whatever implementation is
 
 ## GPT responsibilities
 
-The Custom GPT may:
+The Custom GPT owns semantic understanding and coaching intelligence. It may:
 
+- parse athlete-provided natural language, screenshots and supported uploaded files;
+- extract useful structured workout/activity facts from that evidence;
+- resolve ambiguity conversationally where evidence is incomplete;
 - interpret natural availability and training language;
 - reason across goals, priorities, recent history and current plan state;
 - propose a weekly programme;
 - explain programme rationale;
 - adapt a session or week when circumstances change;
 - interpret qualitative feedback;
+- interpret actual performance, trends and uploaded workout evidence;
 - judge progression and useful next steps;
 - suggest exercise/session substitutions that preserve intended stimulus;
-- interpret trends from bounded metric/performance reads;
+- decide what concise coaching insight is useful to persist;
 - express the configured athlete-specific coach persona.
 
 The GPT must not:
@@ -75,13 +98,12 @@ The GPT must not:
 - invent durable athlete facts when API state is unknown;
 - bypass athlete identity boundaries;
 - claim a durable change occurred without a successful Action result;
-- treat a chat comment as automatically establishing a permanent coaching belief;
-- calculate trusted deterministic facts where code can do so safely;
+- treat one ambiguous extraction or chat comment as automatically establishing a permanent coaching belief;
 - persist hidden chain-of-thought or unstructured internal reasoning as athlete state.
 
 ## Product-code responsibilities
 
-Code owns:
+Code owns trustworthy structure and persistence rather than semantic reasoning. It owns:
 
 - athlete records and authorisation boundaries;
 - trainer persona configuration fields;
@@ -93,11 +115,20 @@ Code owns:
 - plan lifecycle/versioning;
 - session/exercise/set prescriptions;
 - workout actuals and completion/adaptation state;
-- source/provenance for imported or manually entered evidence;
-- bounded coaching observations/hypotheses and their evidence state;
-- deterministic calculations and comparisons;
+- persisted coaching insights/observations and their evidence references;
+- source/provenance for manually entered or LLM-extracted evidence;
+- schema and unit validation;
+- deterministic literal calculations/comparisons where useful;
 - validation, idempotency, privacy and structured errors;
 - history needed to distinguish prescription, adaptation and actual performance.
+
+Code must not:
+
+- semantically parse screenshots or workout files;
+- infer workout meaning from athlete evidence;
+- decide whether a session achieved its intended stimulus;
+- make progression or programming decisions;
+- create a second hidden coaching model alongside the GPT.
 
 Important domain invariants must not live only in React code or only in GPT instructions.
 
@@ -110,7 +141,7 @@ Athlete
   ├── CoachPersona
   ├── TrainingPriorities
   ├── Goals
-  │     └── Events (where relevant)
+  ├── Events
   ├── Metrics[]
   ├── Locations[]
   │     └── Equipment[]
@@ -120,7 +151,8 @@ Athlete
   │           └── Prescriptions / Exercises / Sets
   │                 └── Actuals
   ├── Feedback[]
-  └── CoachingObservations[]
+  ├── EvidenceReferences[]
+  └── CoachingInsights[]
 ```
 
 This is conceptual rather than a committed SQL schema. MVP design should simplify where possible while preserving the important distinctions.
@@ -149,11 +181,13 @@ Structured exercise/set prescriptions and useful set-level recording.
 
 ### Running
 
-Structured session prescription such as duration/distance/intensity/interval guidance, with manual actual result entry in MVP.
+Structured session prescription such as duration/distance/intensity/interval guidance, with direct or conversational actual result entry in MVP.
 
 ### Cycling
 
-Structured duration/intensity guidance and named Zwift workout support where relevant, with manual actual result entry in MVP.
+Structured duration/intensity guidance and named Zwift workout support where relevant, with direct or conversational actual result entry in MVP.
+
+Athlete-provided evidence such as screenshots or supported uploaded workout files may also be interpreted by the GPT and written into the same actual/evidence model through bounded Actions.
 
 Future automatic activity ingestion should attach evidence to this same model rather than create a separate parallel activity product.
 
@@ -170,6 +204,25 @@ Use an extensible time-series metric model with:
 
 Do not hard-code the database around body weight alone. The same pattern should be able to accommodate body composition, FTP, running benchmarks and future athlete metrics.
 
+## Athlete-provided evidence
+
+Coach should support evidence arriving inside the GPT conversation where the current ChatGPT surface can inspect it.
+
+Examples include:
+
+- screenshots from running, cycling or strength apps;
+- workout summaries;
+- exported workout files such as `.fit` when the GPT surface can inspect the uploaded file;
+- other athlete-provided files/images containing training evidence.
+
+The GPT performs extraction and interpretation. It then sends only the useful structured facts, feedback associations and concise coaching insight to bounded Action endpoints.
+
+The backend validates that the proposed writes conform to the accepted schema, units, athlete scope and state invariants. It does not independently re-parse the source evidence to decide what it means.
+
+Source/provenance should identify that values were extracted from athlete-provided evidence. Raw evidence does not need to become part of the durable Coach ledger unless a later product decision establishes a reason to retain it.
+
+If the GPT cannot reliably inspect a particular uploaded format, it should say so and seek another representation rather than silently invent or delegate semantic parsing to an unplanned backend parser.
+
 ## External evidence ingestion
 
 Coach should expose a source-neutral ingestion/service boundary so future evidence can arrive from different authorised sources without changing the coaching model.
@@ -182,6 +235,8 @@ Potential future sources include:
 - permitted Strava integration;
 - Bluetooth fitness devices;
 - other athlete-authorised data providers.
+
+Automatic machine-originated ingestion may create structured factual records directly when the external source already supplies explicit fields. Once those facts enter Coach, interpretation remains an LLM responsibility.
 
 Imported evidence must preserve provenance and map to the correct athlete through authenticated server-side identity, not through a caller-supplied athlete label alone.
 
@@ -222,6 +277,8 @@ Prefer task-oriented contracts such as:
 - start/update/complete workout;
 - record metric;
 - record/attach feedback;
+- record structured evidence extracted by the GPT;
+- record/update concise coaching insight with evidence references;
 - read progress context;
 - manage locations/equipment/goals.
 
@@ -243,7 +300,7 @@ Diagnostics should be sufficient to distinguish:
 - validation failure;
 - stale/conflicting write;
 - database failure;
-- malformed import;
+- malformed structured write;
 - deployment/configuration mismatch.
 
 Do not log credentials, unnecessary athlete narrative, raw hidden model reasoning or more health/fitness detail than is necessary for safe diagnosis.
