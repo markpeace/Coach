@@ -18,6 +18,34 @@ Potential staged route:
 2. normalise imported workouts/metrics into Coach's source-neutral athlete ledger;
 3. later replace the third-party bridge with a thin native Coach iPhone companion using HealthKit directly.
 
+### Current bridge candidate: Health Auto Export
+
+During discovery, **Health Auto Export** was identified as the current practical candidate for stage 1.
+
+It can be configured on an athlete's iPhone to export selected Apple Health data as JSON by HTTP POST to a Coach/Vercel endpoint, using custom authentication headers. The intended Coach pattern is one authenticated ingestion endpoint that resolves an athlete-specific token to the correct athlete rather than trusting an athlete ID supplied in the payload or URL.
+
+Illustrative flow:
+
+```text
+Apple Watch / compatible devices
+        ↓
+Apple Health on athlete iPhone
+        ↓
+Health Auto Export
+        ↓ HTTPS POST + athlete-specific bearer token
+Coach /api/v1/health/import
+        ↓
+validate + identify athlete + normalise
+        ↓
+Coach athlete ledger
+        ↓
+Custom GPT coaching context
+```
+
+Candidate data includes completed workouts, useful workout summaries and selected samples such as heart rate where coaching value justifies storage, plus athlete metrics such as body weight/body-composition measures where available and explicitly enabled.
+
+Health Auto Export is an implementation candidate, not a permanent product dependency or source of truth. Coach's ingestion contract should remain source-neutral so the bridge can later be replaced by a native HealthKit client without changing the athlete ledger model.
+
 This supports the desired experience that an athlete can finish a workout and later ask Coach to interpret it without manually re-entering everything.
 
 Background HealthKit syncing is eventual rather than guaranteed real-time and should not be treated as a live telemetry channel.
