@@ -9,7 +9,7 @@ This document routes future product and implementation work to the smallest auth
 ## Authority order
 
 1. Current direct product-owner instruction.
-2. Approved active Linear execution scope, once the Coach Linear team exists.
+2. Approved active Linear execution scope.
 3. Current repository source-of-truth documents.
 4. `AGENTS.md` repository execution rules.
 5. Specific current product, architecture or technical contracts.
@@ -22,21 +22,32 @@ If sources conflict, surface the conflict rather than silently choosing a lower-
 ## Current durable product memory
 
 - `docs/product/product-definition.md`: landed product purpose, user model, experience principles and known domain concepts.
+- `docs/product/mvp-approved-scope.md`: current approval boundary for autonomous MVP implementation and its explicit exclusions.
 - `docs/product/athlete-foundation.md`: current athlete identity, persona, priorities, qualitative/quantitative goal model, events, locations/equipment and metrics foundation.
 - `docs/product/weekly-planning.md`: current weekly planning ritual, availability, temporary context, plan lifecycle, session intent, adaptation and athlete preference model.
-- `docs/product/workout-execution.md`: current workout execution model, prescription/effective/actual separation, modality-aware logging, adaptation and feedback boundary.
-- `docs/product/mvp-definition.md`: current MVP hypothesis, hero journeys, included capability boundary and exclusions.
+- `docs/product/workout-execution.md`: current workout execution model, prescription/effective/actual separation, modality-aware logging, athlete-provided evidence, adaptation and feedback boundary.
+- `docs/product/progress-learning.md`: current progress, weekly review, goal assessment, coaching observation and next-week learning model.
+- `docs/product/mvp-definition.md`: detailed MVP design history/hypothesis; use `mvp-approved-scope.md` for current implementation authority where status differs.
 - `docs/product/future-possibilities.md`: credible non-MVP pathways that should not silently enter current delivery.
 
 ## Current architecture memory
 
 - `docs/architecture/system-architecture.md`: high-level system shape and GPT/code responsibility boundary.
+- `docs/architecture/mvp-technical-contract.md`: current test-ready MVP implementation, access, API, deployment and verification contract.
 
 ## Delivery state
 
-Coach is currently moving from Discovery into MVP design. The Athlete foundation, weekly planning and workout execution segments have landed; progress/learning remains under MVP design.
+Coach has moved from Discovery/MVP design into approved MVP implementation planning.
 
-There is no dedicated Coach Linear team recorded in this repository yet. Do not invent active issues or roadmap commitments in GitHub. Once Linear is established, update this document and `README.md` to route active delivery there.
+Linear team: **Coach**.
+
+Active project: **First MVP: Persistent personal coach**.
+
+Implementation scope approved for autonomous Work execution: **CCH-1 through CCH-26**, across five implementation milestones ending in a test-ready MVP candidate.
+
+**CCH-27 and CCH-28 are owner-led follow-on validation/reconciliation and are not part of the autonomous build handoff.**
+
+Linear is now the delivery cockpit. Do not create a second backlog in GitHub.
 
 ## Documentation status meanings
 
