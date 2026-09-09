@@ -6,7 +6,7 @@ Each athlete has a distinct identity, goals, training priorities, metrics, locat
 
 ## Current position
 
-Lifecycle: **MVP implementation approved and ready for autonomous Work execution**.
+Lifecycle: **MVP implementation complete; owner validation is next**.
 
 The core product loop is:
 
@@ -34,7 +34,7 @@ Linear team: **Coach**.
 
 Active project: **First MVP: Persistent personal coach**.
 
-The approved autonomous implementation scope is **CCH-1 through CCH-26**, ending at one test-ready MVP candidate. **CCH-27 and CCH-28 are owner-led real-athlete validation and reconciliation and are not part of the autonomous build handoff.**
+The approved autonomous implementation scope is **CCH-1 through CCH-26**, ending at one test-ready MVP candidate. **CCH-27 and CCH-28 remain owner-led real-athlete validation and reconciliation.**
 
 Linear is the delivery/roadmap cockpit. GitHub remains durable product/technical memory and implementation evidence.
 
@@ -73,6 +73,21 @@ Athlete
 ```
 
 The governing principle is **LLM-reasoned and code-grounded**. The GPT supplies coaching judgement and semantic interpretation; code owns trusted identity boundaries, durable facts, plans, actuals, metrics, validation, provenance and state history.
+
+The implemented MVP uses Next.js, TypeScript, Zod, Drizzle/PostgreSQL, Vitest/PGlite and Playwright. Start with [`docs/architecture/implemented-mvp.md`](docs/architecture/implemented-mvp.md) and [`docs/operations/setup-and-deployment.md`](docs/operations/setup-and-deployment.md) for current implementation and setup reality.
+
+## Development
+
+Copy `.env.example` to `.env.local`, provide a dedicated Coach database and distinct household/Action secrets, then run:
+
+```bash
+npm install
+npm run db:migrate
+npm run db:check
+npm run dev
+```
+
+Run `npm run verify` for the local static, test, GPT-package and production-build gate. Browser E2E uses `npm run test:e2e`; set `PLAYWRIGHT_BASE_URL` and `E2E_PASSPHRASE` for the protected Preview.
 
 ## Repository safety
 

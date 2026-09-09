@@ -1,0 +1,8 @@
+{
+  "name": "Coach",
+  "packageVersion": "0.1.0",
+  "apiVersion": "v1",
+  "files": ["instructions.md", "openapi.json", "auth-configuration.md", "acceptance-scenarios.md"],
+  "checksumFile": "package.sha256",
+  "rollback": "Restore all files from the previous Git tag or commit and re-paste its instructions/OpenAPI into GPT Builder."
+}

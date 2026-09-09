@@ -1,0 +1,2452 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Coach Action API",
+    "version": "0.1.0",
+    "description": "Bounded, athlete-scoped operations over Coach's durable ledger."
+  },
+  "servers": [
+    {
+      "url": "https://coach-preview.example.invalid"
+    }
+  ],
+  "paths": {
+    "/api/v1/action": {
+      "post": {
+        "operationId": "coachOperation",
+        "summary": "Perform one bounded Coach task",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "oneOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "operation": {
+                        "type": "string",
+                        "const": "listAthletes"
+                      }
+                    },
+                    "required": [
+                      "operation"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "operation": {
+                        "type": "string",
+                        "const": "createAthlete"
+                      },
+                      "name": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 80
+                      },
+                      "displayName": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 80
+                      },
+                      "timezone": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 80
+                      },
+                      "idempotencyKey": {
+                        "type": "string",
+                        "minLength": 8,
+                        "maxLength": 200
+                      }
+                    },
+                    "required": [
+                      "operation",
+                      "name",
+                      "displayName",
+                      "timezone",
+                      "idempotencyKey"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "operation": {
+                        "type": "string",
+                        "const": "updateAthlete"
+                      },
+                      "displayName": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 80
+                      },
+                      "timezone": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 80
+                      },
+                      "active": {
+                        "type": "boolean"
+                      },
+                      "athleteId": {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                      },
+                      "idempotencyKey": {
+                        "type": "string",
+                        "minLength": 8,
+                        "maxLength": 200
+                      }
+                    },
+                    "required": [
+                      "operation",
+                      "athleteId",
+                      "idempotencyKey"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "operation": {
+                        "type": "string",
+                        "const": "getAthleteContext"
+                      },
+                      "athleteId": {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                      }
+                    },
+                    "required": [
+                      "operation",
+                      "athleteId"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "operation": {
+                        "type": "string",
+                        "const": "upsertPersona"
+                      },
+                      "persona": {
+                        "type": "object",
+                        "properties": {
+                          "coachName": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 40
+                          },
+                          "styleBrief": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 500
+                          },
+                          "warmth": {
+                            "default": "balanced",
+                            "type": "string",
+                            "enum": [
+                              "low",
+                              "balanced",
+                              "high"
+                            ]
+                          },
+                          "explanation": {
+                            "default": "balanced",
+                            "type": "string",
+                            "enum": [
+                              "concise",
+                              "balanced",
+                              "detailed"
+                            ]
+                          },
+                          "challenge": {
+                            "default": "balanced",
+                            "type": "string",
+                            "enum": [
+                              "restrained",
+                              "balanced",
+                              "challenging"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "coachName",
+                          "styleBrief",
+                          "warmth",
+                          "explanation",
+                          "challenge"
+                        ],
+                        "additionalProperties": false
+                      },
+                      "athleteId": {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                      },
+                      "idempotencyKey": {
+                        "type": "string",
+                        "minLength": 8,
+                        "maxLength": 200
+                      }
+                    },
+                    "required": [
+                      "operation",
+                      "persona",
+                      "athleteId",
+                      "idempotencyKey"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "operation": {
+                        "type": "string",
+                        "const": "addContext"
+                      },
+                      "kind": {
+                        "type": "string",
+                        "enum": [
+                          "priority",
+                          "preference",
+                          "goal",
+                          "event",
+                          "location"
+                        ]
+                      },
+                      "data": {
+                        "type": "object",
+                        "propertyNames": {
+                          "type": "string"
+                        },
+                        "additionalProperties": {}
+                      },
+                      "athleteId": {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                      },
+                      "idempotencyKey": {
+                        "type": "string",
+                        "minLength": 8,
+                        "maxLength": 200
+                      }
+                    },
+                    "required": [
+                      "operation",
+                      "kind",
+                      "data",
+                      "athleteId",
+                      "idempotencyKey"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "operation": {
+                        "type": "string",
+                        "const": "retireContext"
+                      },
+                      "contextId": {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                      },
+                      "athleteId": {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                      },
+                      "idempotencyKey": {
+                        "type": "string",
+                        "minLength": 8,
+                        "maxLength": 200
+                      }
+                    },
+                    "required": [
+                      "operation",
+                      "contextId",
+                      "athleteId",
+                      "idempotencyKey"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "operation": {
+                        "type": "string",
+                        "const": "defineMetric"
+                      },
+                      "definition": {
+                        "type": "object",
+                        "properties": {
+                          "key": {
+                            "type": "string",
+                            "pattern": "^[a-z0-9_]+$"
+                          },
+                          "displayName": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 80
+                          },
+                          "unit": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 30
+                          }
+                        },
+                        "required": [
+                          "key",
+                          "displayName",
+                          "unit"
+                        ],
+                        "additionalProperties": false
+                      },
+                      "athleteId": {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                      },
+                      "idempotencyKey": {
+                        "type": "string",
+                        "minLength": 8,
+                        "maxLength": 200
+                      }
+                    },
+                    "required": [
+                      "operation",
+                      "definition",
+                      "athleteId",
+                      "idempotencyKey"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "operation": {
+                        "type": "string",
+                        "const": "recordMetric"
+                      },
+                      "reading": {
+                        "type": "object",
+                        "properties": {
+                          "definitionId": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "measuredAt": {
+                            "type": "string",
+                            "format": "date-time",
+                            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+                          },
+                          "value": {
+                            "type": "number"
+                          },
+                          "source": {
+                            "type": "object",
+                            "properties": {
+                              "kind": {
+                                "type": "string",
+                                "enum": [
+                                  "manual",
+                                  "conversation",
+                                  "athlete_evidence",
+                                  "system"
+                                ]
+                              },
+                              "label": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 120
+                              },
+                              "capturedAt": {
+                                "type": "string",
+                                "format": "date-time",
+                                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+                              },
+                              "confidence": {
+                                "type": "string",
+                                "enum": [
+                                  "high",
+                                  "medium",
+                                  "low"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "kind",
+                              "label"
+                            ],
+                            "additionalProperties": false
+                          },
+                          "context": {
+                            "type": "string",
+                            "maxLength": 300
+                          }
+                        },
+                        "required": [
+                          "definitionId",
+                          "measuredAt",
+                          "value",
+                          "source"
+                        ],
+                        "additionalProperties": false
+                      },
+                      "athleteId": {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                      },
+                      "idempotencyKey": {
+                        "type": "string",
+                        "minLength": 8,
+                        "maxLength": 200
+                      }
+                    },
+                    "required": [
+                      "operation",
+                      "reading",
+                      "athleteId",
+                      "idempotencyKey"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "operation": {
+                        "type": "string",
+                        "const": "setWeeklyContext"
+                      },
+                      "entry": {
+                        "type": "object",
+                        "properties": {
+                          "kind": {
+                            "type": "string",
+                            "enum": [
+                              "availability",
+                              "anchor",
+                              "temporary"
+                            ]
+                          },
+                          "weekStart": {
+                            "type": "string",
+                            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                          },
+                          "effectiveFrom": {
+                            "type": "string",
+                            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                          },
+                          "effectiveTo": {
+                            "type": "string",
+                            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                          },
+                          "data": {
+                            "type": "object",
+                            "properties": {
+                              "date": {
+                                "type": "string",
+                                "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                              },
+                              "durationMinutes": {
+                                "type": "integer",
+                                "exclusiveMinimum": 0,
+                                "maximum": 600
+                              },
+                              "window": {
+                                "type": "string",
+                                "maxLength": 80
+                              },
+                              "locationId": {
+                                "type": "string",
+                                "format": "uuid",
+                                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                              },
+                              "title": {
+                                "type": "string",
+                                "maxLength": 120
+                              },
+                              "note": {
+                                "type": "string",
+                                "maxLength": 500
+                              }
+                            },
+                            "additionalProperties": false
+                          }
+                        },
+                        "required": [
+                          "kind",
+                          "weekStart",
+                          "effectiveFrom",
+                          "effectiveTo",
+                          "data"
+                        ],
+                        "additionalProperties": false
+                      },
+                      "athleteId": {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                      },
+                      "idempotencyKey": {
+                        "type": "string",
+                        "minLength": 8,
+                        "maxLength": 200
+                      }
+                    },
+                    "required": [
+                      "operation",
+                      "entry",
+                      "athleteId",
+                      "idempotencyKey"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "operation": {
+                        "type": "string",
+                        "const": "getPlanningContext"
+                      },
+                      "weekStart": {
+                        "type": "string",
+                        "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                      },
+                      "athleteId": {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                      }
+                    },
+                    "required": [
+                      "operation",
+                      "weekStart",
+                      "athleteId"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "operation": {
+                        "type": "string",
+                        "const": "createDraftPlan"
+                      },
+                      "weekStart": {
+                        "type": "string",
+                        "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                      },
+                      "plan": {
+                        "type": "object",
+                        "properties": {
+                          "rationale": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 1200
+                          },
+                          "sessions": {
+                            "maxItems": 14,
+                            "type": "array",
+                            "items": {
+                              "oneOf": [
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "key": {
+                                      "type": "string",
+                                      "pattern": "^[a-z0-9_-]+$"
+                                    },
+                                    "date": {
+                                      "type": "string",
+                                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                                    },
+                                    "title": {
+                                      "type": "string",
+                                      "minLength": 1,
+                                      "maxLength": 120
+                                    },
+                                    "intendedStimulus": {
+                                      "type": "string",
+                                      "minLength": 1,
+                                      "maxLength": 300
+                                    },
+                                    "locationId": {
+                                      "type": "string",
+                                      "format": "uuid",
+                                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                                    },
+                                    "durationMinutes": {
+                                      "type": "integer",
+                                      "exclusiveMinimum": 0,
+                                      "maximum": 600
+                                    },
+                                    "coachCue": {
+                                      "type": "string",
+                                      "maxLength": 400
+                                    },
+                                    "rationale": {
+                                      "type": "string",
+                                      "maxLength": 600
+                                    },
+                                    "modality": {
+                                      "type": "string",
+                                      "const": "strength"
+                                    },
+                                    "prescription": {
+                                      "type": "object",
+                                      "properties": {
+                                        "exercises": {
+                                          "minItems": 1,
+                                          "maxItems": 30,
+                                          "type": "array",
+                                          "items": {
+                                            "type": "object",
+                                            "properties": {
+                                              "exerciseId": {
+                                                "type": "string",
+                                                "format": "uuid",
+                                                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                                              },
+                                              "exerciseName": {
+                                                "type": "string",
+                                                "minLength": 1,
+                                                "maxLength": 120
+                                              },
+                                              "cue": {
+                                                "type": "string",
+                                                "maxLength": 240
+                                              },
+                                              "sets": {
+                                                "minItems": 1,
+                                                "maxItems": 20,
+                                                "type": "array",
+                                                "items": {
+                                                  "type": "object",
+                                                  "properties": {
+                                                    "reps": {
+                                                      "anyOf": [
+                                                        {
+                                                          "type": "integer",
+                                                          "exclusiveMinimum": 0,
+                                                          "maximum": 9007199254740991
+                                                        },
+                                                        {
+                                                          "type": "string",
+                                                          "minLength": 1,
+                                                          "maxLength": 30
+                                                        }
+                                                      ]
+                                                    },
+                                                    "load": {
+                                                      "type": "number",
+                                                      "minimum": 0
+                                                    },
+                                                    "unit": {
+                                                      "type": "string",
+                                                      "maxLength": 20
+                                                    },
+                                                    "restSeconds": {
+                                                      "type": "integer",
+                                                      "minimum": 0,
+                                                      "maximum": 1200
+                                                    }
+                                                  },
+                                                  "required": [
+                                                    "reps"
+                                                  ],
+                                                  "additionalProperties": false
+                                                }
+                                              }
+                                            },
+                                            "required": [
+                                              "exerciseName",
+                                              "sets"
+                                            ],
+                                            "additionalProperties": false
+                                          }
+                                        }
+                                      },
+                                      "required": [
+                                        "exercises"
+                                      ],
+                                      "additionalProperties": false
+                                    }
+                                  },
+                                  "required": [
+                                    "key",
+                                    "date",
+                                    "title",
+                                    "intendedStimulus",
+                                    "durationMinutes",
+                                    "modality",
+                                    "prescription"
+                                  ],
+                                  "additionalProperties": false
+                                },
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "key": {
+                                      "type": "string",
+                                      "pattern": "^[a-z0-9_-]+$"
+                                    },
+                                    "date": {
+                                      "type": "string",
+                                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                                    },
+                                    "title": {
+                                      "type": "string",
+                                      "minLength": 1,
+                                      "maxLength": 120
+                                    },
+                                    "intendedStimulus": {
+                                      "type": "string",
+                                      "minLength": 1,
+                                      "maxLength": 300
+                                    },
+                                    "locationId": {
+                                      "type": "string",
+                                      "format": "uuid",
+                                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                                    },
+                                    "durationMinutes": {
+                                      "type": "integer",
+                                      "exclusiveMinimum": 0,
+                                      "maximum": 600
+                                    },
+                                    "coachCue": {
+                                      "type": "string",
+                                      "maxLength": 400
+                                    },
+                                    "rationale": {
+                                      "type": "string",
+                                      "maxLength": 600
+                                    },
+                                    "modality": {
+                                      "type": "string",
+                                      "const": "run"
+                                    },
+                                    "prescription": {
+                                      "type": "object",
+                                      "properties": {
+                                        "durationMinutes": {
+                                          "type": "number",
+                                          "exclusiveMinimum": 0
+                                        },
+                                        "distanceKm": {
+                                          "type": "number",
+                                          "exclusiveMinimum": 0
+                                        },
+                                        "intensity": {
+                                          "type": "string",
+                                          "minLength": 1,
+                                          "maxLength": 120
+                                        },
+                                        "paceOrZone": {
+                                          "type": "string",
+                                          "maxLength": 80
+                                        },
+                                        "intervals": {
+                                          "maxItems": 30,
+                                          "type": "array",
+                                          "items": {
+                                            "type": "string",
+                                            "maxLength": 120
+                                          }
+                                        },
+                                        "strides": {
+                                          "type": "string",
+                                          "maxLength": 120
+                                        }
+                                      },
+                                      "required": [
+                                        "intensity"
+                                      ],
+                                      "additionalProperties": false
+                                    }
+                                  },
+                                  "required": [
+                                    "key",
+                                    "date",
+                                    "title",
+                                    "intendedStimulus",
+                                    "durationMinutes",
+                                    "modality",
+                                    "prescription"
+                                  ],
+                                  "additionalProperties": false
+                                },
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "key": {
+                                      "type": "string",
+                                      "pattern": "^[a-z0-9_-]+$"
+                                    },
+                                    "date": {
+                                      "type": "string",
+                                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                                    },
+                                    "title": {
+                                      "type": "string",
+                                      "minLength": 1,
+                                      "maxLength": 120
+                                    },
+                                    "intendedStimulus": {
+                                      "type": "string",
+                                      "minLength": 1,
+                                      "maxLength": 300
+                                    },
+                                    "locationId": {
+                                      "type": "string",
+                                      "format": "uuid",
+                                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                                    },
+                                    "durationMinutes": {
+                                      "type": "integer",
+                                      "exclusiveMinimum": 0,
+                                      "maximum": 600
+                                    },
+                                    "coachCue": {
+                                      "type": "string",
+                                      "maxLength": 400
+                                    },
+                                    "rationale": {
+                                      "type": "string",
+                                      "maxLength": 600
+                                    },
+                                    "modality": {
+                                      "type": "string",
+                                      "const": "cycle"
+                                    },
+                                    "prescription": {
+                                      "type": "object",
+                                      "properties": {
+                                        "durationMinutes": {
+                                          "type": "number",
+                                          "exclusiveMinimum": 0
+                                        },
+                                        "intensity": {
+                                          "type": "string",
+                                          "minLength": 1,
+                                          "maxLength": 120
+                                        },
+                                        "powerGuidance": {
+                                          "type": "string",
+                                          "maxLength": 120
+                                        },
+                                        "zwiftWorkout": {
+                                          "type": "string",
+                                          "maxLength": 160
+                                        }
+                                      },
+                                      "required": [
+                                        "durationMinutes",
+                                        "intensity"
+                                      ],
+                                      "additionalProperties": false
+                                    }
+                                  },
+                                  "required": [
+                                    "key",
+                                    "date",
+                                    "title",
+                                    "intendedStimulus",
+                                    "durationMinutes",
+                                    "modality",
+                                    "prescription"
+                                  ],
+                                  "additionalProperties": false
+                                }
+                              ]
+                            }
+                          }
+                        },
+                        "required": [
+                          "rationale",
+                          "sessions"
+                        ],
+                        "additionalProperties": false
+                      },
+                      "athleteId": {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                      },
+                      "idempotencyKey": {
+                        "type": "string",
+                        "minLength": 8,
+                        "maxLength": 200
+                      }
+                    },
+                    "required": [
+                      "operation",
+                      "weekStart",
+                      "plan",
+                      "athleteId",
+                      "idempotencyKey"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "operation": {
+                        "type": "string",
+                        "const": "reviseDraftPlan"
+                      },
+                      "planId": {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                      },
+                      "expectedVersion": {
+                        "type": "integer",
+                        "exclusiveMinimum": 0,
+                        "maximum": 9007199254740991
+                      },
+                      "plan": {
+                        "type": "object",
+                        "properties": {
+                          "rationale": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 1200
+                          },
+                          "sessions": {
+                            "maxItems": 14,
+                            "type": "array",
+                            "items": {
+                              "oneOf": [
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "key": {
+                                      "type": "string",
+                                      "pattern": "^[a-z0-9_-]+$"
+                                    },
+                                    "date": {
+                                      "type": "string",
+                                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                                    },
+                                    "title": {
+                                      "type": "string",
+                                      "minLength": 1,
+                                      "maxLength": 120
+                                    },
+                                    "intendedStimulus": {
+                                      "type": "string",
+                                      "minLength": 1,
+                                      "maxLength": 300
+                                    },
+                                    "locationId": {
+                                      "type": "string",
+                                      "format": "uuid",
+                                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                                    },
+                                    "durationMinutes": {
+                                      "type": "integer",
+                                      "exclusiveMinimum": 0,
+                                      "maximum": 600
+                                    },
+                                    "coachCue": {
+                                      "type": "string",
+                                      "maxLength": 400
+                                    },
+                                    "rationale": {
+                                      "type": "string",
+                                      "maxLength": 600
+                                    },
+                                    "modality": {
+                                      "type": "string",
+                                      "const": "strength"
+                                    },
+                                    "prescription": {
+                                      "type": "object",
+                                      "properties": {
+                                        "exercises": {
+                                          "minItems": 1,
+                                          "maxItems": 30,
+                                          "type": "array",
+                                          "items": {
+                                            "type": "object",
+                                            "properties": {
+                                              "exerciseId": {
+                                                "type": "string",
+                                                "format": "uuid",
+                                                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                                              },
+                                              "exerciseName": {
+                                                "type": "string",
+                                                "minLength": 1,
+                                                "maxLength": 120
+                                              },
+                                              "cue": {
+                                                "type": "string",
+                                                "maxLength": 240
+                                              },
+                                              "sets": {
+                                                "minItems": 1,
+                                                "maxItems": 20,
+                                                "type": "array",
+                                                "items": {
+                                                  "type": "object",
+                                                  "properties": {
+                                                    "reps": {
+                                                      "anyOf": [
+                                                        {
+                                                          "type": "integer",
+                                                          "exclusiveMinimum": 0,
+                                                          "maximum": 9007199254740991
+                                                        },
+                                                        {
+                                                          "type": "string",
+                                                          "minLength": 1,
+                                                          "maxLength": 30
+                                                        }
+                                                      ]
+                                                    },
+                                                    "load": {
+                                                      "type": "number",
+                                                      "minimum": 0
+                                                    },
+                                                    "unit": {
+                                                      "type": "string",
+                                                      "maxLength": 20
+                                                    },
+                                                    "restSeconds": {
+                                                      "type": "integer",
+                                                      "minimum": 0,
+                                                      "maximum": 1200
+                                                    }
+                                                  },
+                                                  "required": [
+                                                    "reps"
+                                                  ],
+                                                  "additionalProperties": false
+                                                }
+                                              }
+                                            },
+                                            "required": [
+                                              "exerciseName",
+                                              "sets"
+                                            ],
+                                            "additionalProperties": false
+                                          }
+                                        }
+                                      },
+                                      "required": [
+                                        "exercises"
+                                      ],
+                                      "additionalProperties": false
+                                    }
+                                  },
+                                  "required": [
+                                    "key",
+                                    "date",
+                                    "title",
+                                    "intendedStimulus",
+                                    "durationMinutes",
+                                    "modality",
+                                    "prescription"
+                                  ],
+                                  "additionalProperties": false
+                                },
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "key": {
+                                      "type": "string",
+                                      "pattern": "^[a-z0-9_-]+$"
+                                    },
+                                    "date": {
+                                      "type": "string",
+                                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                                    },
+                                    "title": {
+                                      "type": "string",
+                                      "minLength": 1,
+                                      "maxLength": 120
+                                    },
+                                    "intendedStimulus": {
+                                      "type": "string",
+                                      "minLength": 1,
+                                      "maxLength": 300
+                                    },
+                                    "locationId": {
+                                      "type": "string",
+                                      "format": "uuid",
+                                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                                    },
+                                    "durationMinutes": {
+                                      "type": "integer",
+                                      "exclusiveMinimum": 0,
+                                      "maximum": 600
+                                    },
+                                    "coachCue": {
+                                      "type": "string",
+                                      "maxLength": 400
+                                    },
+                                    "rationale": {
+                                      "type": "string",
+                                      "maxLength": 600
+                                    },
+                                    "modality": {
+                                      "type": "string",
+                                      "const": "run"
+                                    },
+                                    "prescription": {
+                                      "type": "object",
+                                      "properties": {
+                                        "durationMinutes": {
+                                          "type": "number",
+                                          "exclusiveMinimum": 0
+                                        },
+                                        "distanceKm": {
+                                          "type": "number",
+                                          "exclusiveMinimum": 0
+                                        },
+                                        "intensity": {
+                                          "type": "string",
+                                          "minLength": 1,
+                                          "maxLength": 120
+                                        },
+                                        "paceOrZone": {
+                                          "type": "string",
+                                          "maxLength": 80
+                                        },
+                                        "intervals": {
+                                          "maxItems": 30,
+                                          "type": "array",
+                                          "items": {
+                                            "type": "string",
+                                            "maxLength": 120
+                                          }
+                                        },
+                                        "strides": {
+                                          "type": "string",
+                                          "maxLength": 120
+                                        }
+                                      },
+                                      "required": [
+                                        "intensity"
+                                      ],
+                                      "additionalProperties": false
+                                    }
+                                  },
+                                  "required": [
+                                    "key",
+                                    "date",
+                                    "title",
+                                    "intendedStimulus",
+                                    "durationMinutes",
+                                    "modality",
+                                    "prescription"
+                                  ],
+                                  "additionalProperties": false
+                                },
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "key": {
+                                      "type": "string",
+                                      "pattern": "^[a-z0-9_-]+$"
+                                    },
+                                    "date": {
+                                      "type": "string",
+                                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                                    },
+                                    "title": {
+                                      "type": "string",
+                                      "minLength": 1,
+                                      "maxLength": 120
+                                    },
+                                    "intendedStimulus": {
+                                      "type": "string",
+                                      "minLength": 1,
+                                      "maxLength": 300
+                                    },
+                                    "locationId": {
+                                      "type": "string",
+                                      "format": "uuid",
+                                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                                    },
+                                    "durationMinutes": {
+                                      "type": "integer",
+                                      "exclusiveMinimum": 0,
+                                      "maximum": 600
+                                    },
+                                    "coachCue": {
+                                      "type": "string",
+                                      "maxLength": 400
+                                    },
+                                    "rationale": {
+                                      "type": "string",
+                                      "maxLength": 600
+                                    },
+                                    "modality": {
+                                      "type": "string",
+                                      "const": "cycle"
+                                    },
+                                    "prescription": {
+                                      "type": "object",
+                                      "properties": {
+                                        "durationMinutes": {
+                                          "type": "number",
+                                          "exclusiveMinimum": 0
+                                        },
+                                        "intensity": {
+                                          "type": "string",
+                                          "minLength": 1,
+                                          "maxLength": 120
+                                        },
+                                        "powerGuidance": {
+                                          "type": "string",
+                                          "maxLength": 120
+                                        },
+                                        "zwiftWorkout": {
+                                          "type": "string",
+                                          "maxLength": 160
+                                        }
+                                      },
+                                      "required": [
+                                        "durationMinutes",
+                                        "intensity"
+                                      ],
+                                      "additionalProperties": false
+                                    }
+                                  },
+                                  "required": [
+                                    "key",
+                                    "date",
+                                    "title",
+                                    "intendedStimulus",
+                                    "durationMinutes",
+                                    "modality",
+                                    "prescription"
+                                  ],
+                                  "additionalProperties": false
+                                }
+                              ]
+                            }
+                          }
+                        },
+                        "required": [
+                          "rationale",
+                          "sessions"
+                        ],
+                        "additionalProperties": false
+                      },
+                      "athleteId": {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                      },
+                      "idempotencyKey": {
+                        "type": "string",
+                        "minLength": 8,
+                        "maxLength": 200
+                      }
+                    },
+                    "required": [
+                      "operation",
+                      "planId",
+                      "expectedVersion",
+                      "plan",
+                      "athleteId",
+                      "idempotencyKey"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "operation": {
+                        "type": "string",
+                        "const": "lockPlan"
+                      },
+                      "planId": {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                      },
+                      "expectedVersion": {
+                        "type": "integer",
+                        "exclusiveMinimum": 0,
+                        "maximum": 9007199254740991
+                      },
+                      "confirmation": {
+                        "type": "string",
+                        "const": "lock"
+                      },
+                      "athleteId": {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                      },
+                      "idempotencyKey": {
+                        "type": "string",
+                        "minLength": 8,
+                        "maxLength": 200
+                      }
+                    },
+                    "required": [
+                      "operation",
+                      "planId",
+                      "expectedVersion",
+                      "confirmation",
+                      "athleteId",
+                      "idempotencyKey"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "operation": {
+                        "type": "string",
+                        "const": "adaptPlan"
+                      },
+                      "planId": {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                      },
+                      "expectedVersion": {
+                        "type": "integer",
+                        "exclusiveMinimum": 0,
+                        "maximum": 9007199254740991
+                      },
+                      "reason": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 500
+                      },
+                      "plan": {
+                        "type": "object",
+                        "properties": {
+                          "rationale": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 1200
+                          },
+                          "sessions": {
+                            "maxItems": 14,
+                            "type": "array",
+                            "items": {
+                              "oneOf": [
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "key": {
+                                      "type": "string",
+                                      "pattern": "^[a-z0-9_-]+$"
+                                    },
+                                    "date": {
+                                      "type": "string",
+                                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                                    },
+                                    "title": {
+                                      "type": "string",
+                                      "minLength": 1,
+                                      "maxLength": 120
+                                    },
+                                    "intendedStimulus": {
+                                      "type": "string",
+                                      "minLength": 1,
+                                      "maxLength": 300
+                                    },
+                                    "locationId": {
+                                      "type": "string",
+                                      "format": "uuid",
+                                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                                    },
+                                    "durationMinutes": {
+                                      "type": "integer",
+                                      "exclusiveMinimum": 0,
+                                      "maximum": 600
+                                    },
+                                    "coachCue": {
+                                      "type": "string",
+                                      "maxLength": 400
+                                    },
+                                    "rationale": {
+                                      "type": "string",
+                                      "maxLength": 600
+                                    },
+                                    "modality": {
+                                      "type": "string",
+                                      "const": "strength"
+                                    },
+                                    "prescription": {
+                                      "type": "object",
+                                      "properties": {
+                                        "exercises": {
+                                          "minItems": 1,
+                                          "maxItems": 30,
+                                          "type": "array",
+                                          "items": {
+                                            "type": "object",
+                                            "properties": {
+                                              "exerciseId": {
+                                                "type": "string",
+                                                "format": "uuid",
+                                                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                                              },
+                                              "exerciseName": {
+                                                "type": "string",
+                                                "minLength": 1,
+                                                "maxLength": 120
+                                              },
+                                              "cue": {
+                                                "type": "string",
+                                                "maxLength": 240
+                                              },
+                                              "sets": {
+                                                "minItems": 1,
+                                                "maxItems": 20,
+                                                "type": "array",
+                                                "items": {
+                                                  "type": "object",
+                                                  "properties": {
+                                                    "reps": {
+                                                      "anyOf": [
+                                                        {
+                                                          "type": "integer",
+                                                          "exclusiveMinimum": 0,
+                                                          "maximum": 9007199254740991
+                                                        },
+                                                        {
+                                                          "type": "string",
+                                                          "minLength": 1,
+                                                          "maxLength": 30
+                                                        }
+                                                      ]
+                                                    },
+                                                    "load": {
+                                                      "type": "number",
+                                                      "minimum": 0
+                                                    },
+                                                    "unit": {
+                                                      "type": "string",
+                                                      "maxLength": 20
+                                                    },
+                                                    "restSeconds": {
+                                                      "type": "integer",
+                                                      "minimum": 0,
+                                                      "maximum": 1200
+                                                    }
+                                                  },
+                                                  "required": [
+                                                    "reps"
+                                                  ],
+                                                  "additionalProperties": false
+                                                }
+                                              }
+                                            },
+                                            "required": [
+                                              "exerciseName",
+                                              "sets"
+                                            ],
+                                            "additionalProperties": false
+                                          }
+                                        }
+                                      },
+                                      "required": [
+                                        "exercises"
+                                      ],
+                                      "additionalProperties": false
+                                    }
+                                  },
+                                  "required": [
+                                    "key",
+                                    "date",
+                                    "title",
+                                    "intendedStimulus",
+                                    "durationMinutes",
+                                    "modality",
+                                    "prescription"
+                                  ],
+                                  "additionalProperties": false
+                                },
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "key": {
+                                      "type": "string",
+                                      "pattern": "^[a-z0-9_-]+$"
+                                    },
+                                    "date": {
+                                      "type": "string",
+                                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                                    },
+                                    "title": {
+                                      "type": "string",
+                                      "minLength": 1,
+                                      "maxLength": 120
+                                    },
+                                    "intendedStimulus": {
+                                      "type": "string",
+                                      "minLength": 1,
+                                      "maxLength": 300
+                                    },
+                                    "locationId": {
+                                      "type": "string",
+                                      "format": "uuid",
+                                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                                    },
+                                    "durationMinutes": {
+                                      "type": "integer",
+                                      "exclusiveMinimum": 0,
+                                      "maximum": 600
+                                    },
+                                    "coachCue": {
+                                      "type": "string",
+                                      "maxLength": 400
+                                    },
+                                    "rationale": {
+                                      "type": "string",
+                                      "maxLength": 600
+                                    },
+                                    "modality": {
+                                      "type": "string",
+                                      "const": "run"
+                                    },
+                                    "prescription": {
+                                      "type": "object",
+                                      "properties": {
+                                        "durationMinutes": {
+                                          "type": "number",
+                                          "exclusiveMinimum": 0
+                                        },
+                                        "distanceKm": {
+                                          "type": "number",
+                                          "exclusiveMinimum": 0
+                                        },
+                                        "intensity": {
+                                          "type": "string",
+                                          "minLength": 1,
+                                          "maxLength": 120
+                                        },
+                                        "paceOrZone": {
+                                          "type": "string",
+                                          "maxLength": 80
+                                        },
+                                        "intervals": {
+                                          "maxItems": 30,
+                                          "type": "array",
+                                          "items": {
+                                            "type": "string",
+                                            "maxLength": 120
+                                          }
+                                        },
+                                        "strides": {
+                                          "type": "string",
+                                          "maxLength": 120
+                                        }
+                                      },
+                                      "required": [
+                                        "intensity"
+                                      ],
+                                      "additionalProperties": false
+                                    }
+                                  },
+                                  "required": [
+                                    "key",
+                                    "date",
+                                    "title",
+                                    "intendedStimulus",
+                                    "durationMinutes",
+                                    "modality",
+                                    "prescription"
+                                  ],
+                                  "additionalProperties": false
+                                },
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "key": {
+                                      "type": "string",
+                                      "pattern": "^[a-z0-9_-]+$"
+                                    },
+                                    "date": {
+                                      "type": "string",
+                                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                                    },
+                                    "title": {
+                                      "type": "string",
+                                      "minLength": 1,
+                                      "maxLength": 120
+                                    },
+                                    "intendedStimulus": {
+                                      "type": "string",
+                                      "minLength": 1,
+                                      "maxLength": 300
+                                    },
+                                    "locationId": {
+                                      "type": "string",
+                                      "format": "uuid",
+                                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                                    },
+                                    "durationMinutes": {
+                                      "type": "integer",
+                                      "exclusiveMinimum": 0,
+                                      "maximum": 600
+                                    },
+                                    "coachCue": {
+                                      "type": "string",
+                                      "maxLength": 400
+                                    },
+                                    "rationale": {
+                                      "type": "string",
+                                      "maxLength": 600
+                                    },
+                                    "modality": {
+                                      "type": "string",
+                                      "const": "cycle"
+                                    },
+                                    "prescription": {
+                                      "type": "object",
+                                      "properties": {
+                                        "durationMinutes": {
+                                          "type": "number",
+                                          "exclusiveMinimum": 0
+                                        },
+                                        "intensity": {
+                                          "type": "string",
+                                          "minLength": 1,
+                                          "maxLength": 120
+                                        },
+                                        "powerGuidance": {
+                                          "type": "string",
+                                          "maxLength": 120
+                                        },
+                                        "zwiftWorkout": {
+                                          "type": "string",
+                                          "maxLength": 160
+                                        }
+                                      },
+                                      "required": [
+                                        "durationMinutes",
+                                        "intensity"
+                                      ],
+                                      "additionalProperties": false
+                                    }
+                                  },
+                                  "required": [
+                                    "key",
+                                    "date",
+                                    "title",
+                                    "intendedStimulus",
+                                    "durationMinutes",
+                                    "modality",
+                                    "prescription"
+                                  ],
+                                  "additionalProperties": false
+                                }
+                              ]
+                            }
+                          }
+                        },
+                        "required": [
+                          "rationale",
+                          "sessions"
+                        ],
+                        "additionalProperties": false
+                      },
+                      "accepted": {
+                        "type": "boolean",
+                        "const": true
+                      },
+                      "athleteId": {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                      },
+                      "idempotencyKey": {
+                        "type": "string",
+                        "minLength": 8,
+                        "maxLength": 200
+                      }
+                    },
+                    "required": [
+                      "operation",
+                      "planId",
+                      "expectedVersion",
+                      "reason",
+                      "plan",
+                      "accepted",
+                      "athleteId",
+                      "idempotencyKey"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "operation": {
+                        "type": "string",
+                        "const": "getPlan"
+                      },
+                      "weekStart": {
+                        "type": "string",
+                        "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                      },
+                      "planId": {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                      },
+                      "athleteId": {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                      }
+                    },
+                    "required": [
+                      "operation",
+                      "athleteId"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "operation": {
+                        "type": "string",
+                        "const": "getToday"
+                      },
+                      "date": {
+                        "type": "string",
+                        "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                      },
+                      "athleteId": {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                      }
+                    },
+                    "required": [
+                      "operation",
+                      "date",
+                      "athleteId"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "operation": {
+                        "type": "string",
+                        "const": "createExercise"
+                      },
+                      "canonicalName": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 120
+                      },
+                      "aliases": {
+                        "default": [],
+                        "maxItems": 20,
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "maxLength": 120
+                        }
+                      },
+                      "category": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 80
+                      },
+                      "equipment": {
+                        "type": "string",
+                        "maxLength": 80
+                      },
+                      "athleteId": {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                      },
+                      "idempotencyKey": {
+                        "type": "string",
+                        "minLength": 8,
+                        "maxLength": 200
+                      }
+                    },
+                    "required": [
+                      "operation",
+                      "canonicalName",
+                      "aliases",
+                      "category",
+                      "athleteId",
+                      "idempotencyKey"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "operation": {
+                        "type": "string",
+                        "const": "getExerciseHistory"
+                      },
+                      "exerciseName": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 120
+                      },
+                      "athleteId": {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                      }
+                    },
+                    "required": [
+                      "operation",
+                      "exerciseName",
+                      "athleteId"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "operation": {
+                        "type": "string",
+                        "const": "startWorkout"
+                      },
+                      "planId": {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                      },
+                      "sessionKey": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "expectedPlanVersion": {
+                        "type": "integer",
+                        "exclusiveMinimum": 0,
+                        "maximum": 9007199254740991
+                      },
+                      "athleteId": {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                      },
+                      "idempotencyKey": {
+                        "type": "string",
+                        "minLength": 8,
+                        "maxLength": 200
+                      }
+                    },
+                    "required": [
+                      "operation",
+                      "planId",
+                      "sessionKey",
+                      "expectedPlanVersion",
+                      "athleteId",
+                      "idempotencyKey"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "operation": {
+                        "type": "string",
+                        "const": "adaptWorkout"
+                      },
+                      "workoutId": {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                      },
+                      "expectedVersion": {
+                        "type": "integer",
+                        "exclusiveMinimum": 0,
+                        "maximum": 9007199254740991
+                      },
+                      "reason": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 500
+                      },
+                      "effectivePrescription": {
+                        "type": "object",
+                        "propertyNames": {
+                          "type": "string"
+                        },
+                        "additionalProperties": {}
+                      },
+                      "accepted": {
+                        "type": "boolean",
+                        "const": true
+                      },
+                      "athleteId": {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                      },
+                      "idempotencyKey": {
+                        "type": "string",
+                        "minLength": 8,
+                        "maxLength": 200
+                      }
+                    },
+                    "required": [
+                      "operation",
+                      "workoutId",
+                      "expectedVersion",
+                      "reason",
+                      "effectivePrescription",
+                      "accepted",
+                      "athleteId",
+                      "idempotencyKey"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "operation": {
+                        "type": "string",
+                        "const": "logSet"
+                      },
+                      "workoutId": {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                      },
+                      "expectedVersion": {
+                        "type": "integer",
+                        "exclusiveMinimum": 0,
+                        "maximum": 9007199254740991
+                      },
+                      "exerciseId": {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                      },
+                      "exerciseName": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 120
+                      },
+                      "setIndex": {
+                        "type": "integer",
+                        "exclusiveMinimum": 0,
+                        "maximum": 9007199254740991
+                      },
+                      "reps": {
+                        "type": "number",
+                        "minimum": 0
+                      },
+                      "load": {
+                        "type": "number",
+                        "minimum": 0
+                      },
+                      "unit": {
+                        "type": "string",
+                        "maxLength": 20
+                      },
+                      "athleteId": {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                      },
+                      "idempotencyKey": {
+                        "type": "string",
+                        "minLength": 8,
+                        "maxLength": 200
+                      }
+                    },
+                    "required": [
+                      "operation",
+                      "workoutId",
+                      "expectedVersion",
+                      "exerciseName",
+                      "setIndex",
+                      "athleteId",
+                      "idempotencyKey"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "operation": {
+                        "type": "string",
+                        "const": "completeWorkout"
+                      },
+                      "workoutId": {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                      },
+                      "expectedVersion": {
+                        "type": "integer",
+                        "exclusiveMinimum": 0,
+                        "maximum": 9007199254740991
+                      },
+                      "outcome": {
+                        "type": "string",
+                        "enum": [
+                          "completed",
+                          "partial",
+                          "skipped",
+                          "missed"
+                        ]
+                      },
+                      "actual": {
+                        "type": "object",
+                        "properties": {
+                          "durationMinutes": {
+                            "type": "number",
+                            "minimum": 0
+                          },
+                          "distanceKm": {
+                            "type": "number",
+                            "minimum": 0
+                          },
+                          "pace": {
+                            "type": "string",
+                            "maxLength": 40
+                          },
+                          "averageHeartRate": {
+                            "type": "integer",
+                            "minimum": 20,
+                            "maximum": 250
+                          },
+                          "averagePower": {
+                            "type": "number",
+                            "minimum": 0
+                          },
+                          "result": {
+                            "type": "string",
+                            "maxLength": 300
+                          },
+                          "source": {
+                            "type": "object",
+                            "properties": {
+                              "kind": {
+                                "type": "string",
+                                "enum": [
+                                  "manual",
+                                  "conversation",
+                                  "athlete_evidence",
+                                  "system"
+                                ]
+                              },
+                              "label": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 120
+                              },
+                              "capturedAt": {
+                                "type": "string",
+                                "format": "date-time",
+                                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+                              },
+                              "confidence": {
+                                "type": "string",
+                                "enum": [
+                                  "high",
+                                  "medium",
+                                  "low"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "kind",
+                              "label"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "required": [
+                          "source"
+                        ],
+                        "additionalProperties": false
+                      },
+                      "feedback": {
+                        "type": "object",
+                        "properties": {
+                          "difficulty": {
+                            "type": "string",
+                            "enum": [
+                              "easy",
+                              "about_right",
+                              "hard",
+                              "very_hard"
+                            ]
+                          },
+                          "note": {
+                            "type": "string",
+                            "maxLength": 1000
+                          }
+                        },
+                        "required": [
+                          "difficulty"
+                        ],
+                        "additionalProperties": false
+                      },
+                      "evidence": {
+                        "default": [],
+                        "maxItems": 10,
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "source": {
+                              "type": "object",
+                              "properties": {
+                                "kind": {
+                                  "type": "string",
+                                  "enum": [
+                                    "manual",
+                                    "conversation",
+                                    "athlete_evidence",
+                                    "system"
+                                  ]
+                                },
+                                "label": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 120
+                                },
+                                "capturedAt": {
+                                  "type": "string",
+                                  "format": "date-time",
+                                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+                                },
+                                "confidence": {
+                                  "type": "string",
+                                  "enum": [
+                                    "high",
+                                    "medium",
+                                    "low"
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "kind",
+                                "label"
+                              ],
+                              "additionalProperties": false
+                            },
+                            "description": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 300
+                            },
+                            "fields": {
+                              "maxItems": 40,
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            },
+                            "retainedRaw": {
+                              "default": false,
+                              "type": "boolean",
+                              "const": false
+                            }
+                          },
+                          "required": [
+                            "source",
+                            "description",
+                            "fields",
+                            "retainedRaw"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "coachInterpretation": {
+                        "type": "string",
+                        "maxLength": 600
+                      },
+                      "athleteId": {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                      },
+                      "idempotencyKey": {
+                        "type": "string",
+                        "minLength": 8,
+                        "maxLength": 200
+                      }
+                    },
+                    "required": [
+                      "operation",
+                      "workoutId",
+                      "expectedVersion",
+                      "outcome",
+                      "evidence",
+                      "athleteId",
+                      "idempotencyKey"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "operation": {
+                        "type": "string",
+                        "const": "getProgress"
+                      },
+                      "periodStart": {
+                        "type": "string",
+                        "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                      },
+                      "periodEnd": {
+                        "type": "string",
+                        "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                      },
+                      "athleteId": {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                      }
+                    },
+                    "required": [
+                      "operation",
+                      "periodStart",
+                      "periodEnd",
+                      "athleteId"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "operation": {
+                        "type": "string",
+                        "const": "createReview"
+                      },
+                      "periodStart": {
+                        "type": "string",
+                        "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                      },
+                      "periodEnd": {
+                        "type": "string",
+                        "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                      },
+                      "summary": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 1200
+                      },
+                      "goalAssessments": {
+                        "maxItems": 30,
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "goalId": {
+                              "type": "string",
+                              "format": "uuid",
+                              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                            },
+                            "status": {
+                              "type": "string",
+                              "enum": [
+                                "progressing_well",
+                                "progressing",
+                                "unclear",
+                                "stalled",
+                                "needs_review"
+                              ]
+                            },
+                            "summary": {
+                              "type": "string",
+                              "maxLength": 400
+                            }
+                          },
+                          "required": [
+                            "goalId",
+                            "status",
+                            "summary"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "recommendedDirection": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 800
+                      },
+                      "evidenceRefs": {
+                        "maxItems": 40,
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      "athleteId": {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                      },
+                      "idempotencyKey": {
+                        "type": "string",
+                        "minLength": 8,
+                        "maxLength": 200
+                      }
+                    },
+                    "required": [
+                      "operation",
+                      "periodStart",
+                      "periodEnd",
+                      "summary",
+                      "goalAssessments",
+                      "recommendedDirection",
+                      "evidenceRefs",
+                      "athleteId",
+                      "idempotencyKey"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "operation": {
+                        "type": "string",
+                        "const": "addObservation"
+                      },
+                      "text": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 600
+                      },
+                      "evidenceRefs": {
+                        "maxItems": 30,
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      "athleteId": {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                      },
+                      "idempotencyKey": {
+                        "type": "string",
+                        "minLength": 8,
+                        "maxLength": 200
+                      }
+                    },
+                    "required": [
+                      "operation",
+                      "text",
+                      "evidenceRefs",
+                      "athleteId",
+                      "idempotencyKey"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "operation": {
+                        "type": "string",
+                        "const": "retireObservation"
+                      },
+                      "observationId": {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                      },
+                      "athleteId": {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                      },
+                      "idempotencyKey": {
+                        "type": "string",
+                        "minLength": 8,
+                        "maxLength": 200
+                      }
+                    },
+                    "required": [
+                      "operation",
+                      "observationId",
+                      "athleteId",
+                      "idempotencyKey"
+                    ],
+                    "additionalProperties": false
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "ok",
+                    "data"
+                  ],
+                  "properties": {
+                    "ok": {
+                      "const": true
+                    },
+                    "data": {}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failure"
+          },
+          "401": {
+            "description": "Authentication failure"
+          },
+          "404": {
+            "description": "Athlete-scoped object not found"
+          },
+          "409": {
+            "description": "Stale state or idempotency conflict"
+          },
+          "500": {
+            "description": "Database/runtime failure"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    }
+  }
+}

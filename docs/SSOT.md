@@ -37,13 +37,13 @@ If sources conflict, surface the conflict rather than silently choosing a lower-
 
 ## Delivery state
 
-Coach has moved from Discovery/MVP design into approved MVP implementation planning.
+Coach has moved from approved MVP implementation into the test-ready handback boundary.
 
 Linear team: **Coach**.
 
 Active project: **First MVP: Persistent personal coach**.
 
-Implementation scope approved for autonomous Work execution: **CCH-1 through CCH-26**, across five implementation milestones ending in a test-ready MVP candidate.
+Implementation scope **CCH-1 through CCH-26** is represented by the current application, migration, tests, GPT package and deployment documents. `docs/architecture/implemented-mvp.md` records the delivered technical shape; `docs/operations/setup-and-deployment.md` records the operational topology.
 
 **CCH-27 and CCH-28 are owner-led follow-on validation/reconciliation and are not part of the autonomous build handoff.**
 
