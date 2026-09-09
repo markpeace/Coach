@@ -29,7 +29,7 @@ test("complete persistent coaching loop with explicit athlete isolation",async({
  const draft=await op(page,{operation:"createDraftPlan",athleteId:alex.id,weekStart:week,plan:planPayload,idempotencyKey:key("draft")});
  const revisedPayload={...planPayload,rationale:"Revised after athlete asked to protect Friday recovery"};
  const revised=await op(page,{operation:"reviseDraftPlan",athleteId:alex.id,planId:draft.id,expectedVersion:1,plan:revisedPayload,idempotencyKey:key("revise")});
- const retryKey=key("lock");await op(page,{operation:"lockPlan",athleteId:alex.id,planId:draft.id,expectedVersion:revised.version,confirmation:"lock",idempotencyKey:retryKey});await op(page,{operation:"lockPlan",athleteId:alex.id,planId:draft.id,expectedVersion:revised.version,confirmation:"lock",idempotencyKey:retryKey});
+ const retryKey=key("lock");await op(page,{operation:"lockPlan",athleteId:alex.id,planId:draft.id,expectedVersion:revised.version,confirmation:"lock",idempotencyKey:retryKey});await op(page,{operation:"lockPlan",athleteId:alex.id,planId:draft.id,expectedVersion:revised.version,confirmation:"lock",idempotencyKey:retryKey});const changedRetry=await page.request.post("/api/v1/action",{data:{operation:"lockPlan",athleteId:alex.id,planId:draft.id,expectedVersion:999,confirmation:"lock",idempotencyKey:retryKey}});expect(changedRetry.status()).toBe(409);
  const adaptedPayload={...revisedPayload,sessions:revisedPayload.sessions.map(s=>s.key==="cycle-sat"?{...s,date:"2026-09-20"}:s)};
  const adapted=await op(page,{operation:"adaptPlan",athleteId:alex.id,planId:draft.id,expectedVersion:2,reason:"Saturday became unavailable",plan:adaptedPayload,accepted:true,idempotencyKey:key("adapt")});
  const strength=await op(page,{operation:"startWorkout",athleteId:alex.id,planId:draft.id,sessionKey:"strength-mon",expectedPlanVersion:adapted.version,idempotencyKey:key("start")});
@@ -46,5 +46,5 @@ test("complete persistent coaching loop with explicit athlete isolation",async({
  await page.goto("/athlete");await page.getByLabel("Active athlete").selectOption(alex.id);await expect(page.getByRole("heading",{name:`Alex ${suffix}`})).toBeVisible();await expect(page.getByText("Coach Rowan")).toBeVisible();
  await page.goto("/plan");await page.getByLabel("Week starting").fill(week);await expect(page.getByText("accepted baseline v2")).toBeVisible();await expect(page.getByText("adapted",{exact:true})).toBeVisible();
  await page.goto("/today");await page.getByLabel("View date").fill("2026-09-14");await expect(page.getByText("Upper strength")).toBeVisible();
- await page.goto("/progress");await expect(page.getByText(/sessions completed/)).toBeVisible();
+ await page.goto("/progress");await page.getByLabel("Review through week starting").fill("2026-09-21");await expect(page.getByText(/sessions completed/)).toBeVisible();
 });

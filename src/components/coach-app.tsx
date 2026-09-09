@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
-import { useCallback, useEffect, useState, type FormEvent } from "react";
+import { cloneElement, isValidElement, useCallback, useEffect, useId, useState, type FormEvent, type ReactElement, type ReactNode } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AppShell, type Athlete } from "./app-shell";
 
@@ -34,7 +34,7 @@ export function CoachApp({view}:{view:View}){
    if(view==="workout"){
     const planId=params.get("planId");const sessionKey=params.get("sessionKey");if(!planId||!sessionKey)throw new Error("Workout link is incomplete");
     const plan=await action({operation:"getPlan",athleteId,planId});let workout=plan.workouts.find((w:any)=>w.sessionKey===sessionKey);
-    if(!workout)workout=await action({operation:"startWorkout",athleteId,planId,sessionKey,expectedPlanVersion:plan.plan.version,idempotencyKey:idk("start-workout")});
+    if(!workout)workout=await action({operation:"startWorkout",athleteId,planId,sessionKey,expectedPlanVersion:plan.plan.version,idempotencyKey:`start-workout:${athleteId}:${planId}:${sessionKey}`});
     const session=plan.current.payload.sessions.find((s:any)=>s.key===sessionKey);setData({plan,session,workout});
    }
   }catch(e){setError((e as Error).message)}
@@ -54,8 +54,8 @@ export function CoachApp({view}:{view:View}){
 }
 
 type Run=(work:()=>Promise<unknown>,message:string)=>Promise<void>;
-function Field({label,name,type="text",defaultValue,required=true,children}:{label:string;name:string;type?:string;defaultValue?:string|number;required?:boolean;placeholder?:string;children?:React.ReactNode}){return <div className="field"><label htmlFor={name}>{label}</label>{children??<input id={name} name={name} type={type} defaultValue={defaultValue} required={required}/>}</div>}
-function Submit({busy,children}:{busy:boolean;children:React.ReactNode}){return <button className="button" disabled={busy}>{busy?"Saving…":children}</button>}
+function Field({label,name,type="text",defaultValue,required=true,children}:{label:string;name:string;type?:string;defaultValue?:string|number;required?:boolean;placeholder?:string;children?:ReactNode}){const id=`field-${useId().replaceAll(":","")}`;const control=children&&isValidElement(children)?cloneElement(children as ReactElement<{id?:string}>,{id}):<input id={id} name={name} type={type} defaultValue={defaultValue} required={required}/>;return <div className="field"><label htmlFor={id}>{label}</label>{control}</div>}
+function Submit({busy,children}:{busy:boolean;children:ReactNode}){return <button className="button" disabled={busy}>{busy?"Saving…":children}</button>}
 function formData(event:FormEvent<HTMLFormElement>){event.preventDefault();return new FormData(event.currentTarget)}
 
 function AthleteView({data,athleteId,busy,run}:{data:any;athleteId:string;busy:boolean;run:Run}){

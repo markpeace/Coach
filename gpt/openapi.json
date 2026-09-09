@@ -7,7 +7,7 @@
   },
   "servers": [
     {
-      "url": "https://coach-preview.example.invalid"
+      "url": "https://coach-mark-peaces-projects-a5248ac1.vercel.app"
     }
   ],
   "paths": {

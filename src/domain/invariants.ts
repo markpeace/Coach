@@ -30,3 +30,8 @@ export function assertWorkoutMutable(status: string, version: number, expectedVe
   if (["completed", "partial", "skipped", "missed"].includes(status)) throw new DomainError("CONFLICT", "Workout is already closed");
   if (version !== expectedVersion) throw new DomainError("CONFLICT", "Workout version is stale");
 }
+
+export function matchesExerciseName(exercise: { canonicalName: string; aliases: string[] }, query: string) {
+  const needle = query.trim().toLocaleLowerCase();
+  return exercise.canonicalName.toLocaleLowerCase() === needle || exercise.aliases.some(alias => alias.toLocaleLowerCase() === needle);
+}

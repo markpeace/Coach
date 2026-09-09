@@ -53,7 +53,7 @@ No backend model is present. The Custom GPT owns conversation, coaching judgemen
 
 ## Reproducible GPT package
 
-`gpt/` contains version 0.1.0 instructions, generated OpenAPI, authentication notes, acceptance scenarios, manifest and combined SHA-256 checksum. `npm run gpt:verify` proves the packaged request schema matches the runtime operation schema.
+`gpt/` contains version 0.1.0 instructions, generated OpenAPI, authentication notes, acceptance scenarios, manifest and combined SHA-256 checksum. The Action server is the stable Coach Preview origin. `npm run gpt:verify` proves the packaged request schema matches the runtime operation schema.
 
 ## Deliberate MVP limits
 

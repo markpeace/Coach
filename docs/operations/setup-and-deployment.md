@@ -20,7 +20,9 @@ For an empty test environment, create a fresh Neon branch/database and run the m
 
 ## Vercel topology
 
-The intended owner-test environment is one dedicated Vercel project linked to `markpeace/Coach`. Preview is the only authorised target during MVP testing. `main` remains the repository default and Vercel production-branch assumption, but no production deployment or promotion is part of this implementation batch.
+The owner-test environment is the dedicated Vercel project `coach` (`prj_upoz4N1DtIrWDydxPcgLBCx7Dn5C`) in the `mark-peaces-projects-a5248ac1` team. It is not linked to GitHub. The MVP candidate therefore uses one explicit manual Preview deployment from a verified checkout, preventing pushes to `main` from producing builds. The stable Action origin is `https://coach-mark-peaces-projects-a5248ac1.vercel.app`.
+
+Preview is the only authorised target during MVP testing. No production deployment or promotion is part of this implementation batch.
 
 Preview-only environment variables:
 
@@ -28,11 +30,11 @@ Preview-only environment variables:
 - `HOUSEHOLD_PASSPHRASE`: private web access secret;
 - `SESSION_SECRET`: at least 32 random characters;
 - `GPT_ACTION_API_KEY`: a separate bearer key;
-- `NEXT_PUBLIC_APP_URL`: the final Preview origin.
+- `NEXT_PUBLIC_APP_URL`: `https://coach-mark-peaces-projects-a5248ac1.vercel.app`.
 
 ## Authoritative deployment path
 
-The authoritative path for the MVP candidate is a single Vercel Preview deployment from the final verified commit. If Git integration is enabled for the project, push the final feature/preview branch once and use the resulting automatic Preview. Do not also deploy the same SHA manually. If Git integration is unavailable, use one manual `vercel deploy` from the verified checkout.
+The authoritative path for the MVP candidate is a single manual Vercel Preview deployment containing the runtime files from the final verified implementation commit. Do not enable Git integration or deploy the same source again merely to obtain another URL.
 
 Use local lint, typecheck, unit/integration tests, GPT package verification and `next build` before the remote deployment. Remote deployment exists to prove Vercel, Neon, cookie/auth and browser behaviour together.
 

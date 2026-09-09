@@ -4,7 +4,7 @@ import { and, asc, desc, eq, gte, inArray, lte, or, sql } from "drizzle-orm";
 import { db } from "@/db/client";
 import { athleteContext, athletes, exercises, idempotency, metricDefinitions, metricReadings, observations, plans, planVersions, reviews, setActuals, weeklyContext, workouts } from "@/db/schema";
 import { operationSchema, planPayloadSchema, type CoachOperation, validateContext } from "./contracts";
-import { assertWorkoutMutable, DomainError } from "./invariants";
+import { assertWorkoutMutable, DomainError, matchesExerciseName } from "./invariants";
 
 type Json = Record<string, unknown>;
 type Result = Json | Json[];
@@ -19,22 +19,25 @@ async function ensureAthlete(athleteId: string) {
 
 async function idempotent(op: CoachOperation & { idempotencyKey: string }, work: () => Promise<Result>): Promise<Result> {
   const requestHash = hash(op);
-  const [existing] = await db().select().from(idempotency).where(eq(idempotency.key, op.idempotencyKey)).limit(1);
-  if (existing) {
+  const athleteId = "athleteId" in op ? op.athleteId : null;
+  const [reservation] = await db().insert(idempotency).values({ key: op.idempotencyKey, operation: op.operation, athleteId, requestHash, response: null }).onConflictDoNothing().returning();
+  if (!reservation) {
+    const [existing] = await db().select().from(idempotency).where(eq(idempotency.key, op.idempotencyKey)).limit(1);
+    if (!existing) throw new DomainError("CONFLICT", "Idempotent request is being resolved; retry with the same key");
     if (existing.operation !== op.operation || existing.requestHash !== requestHash || existing.athleteId !== ("athleteId" in op ? op.athleteId : null)) {
       throw new DomainError("CONFLICT", "Idempotency key was already used for a different request");
     }
+    if (existing.response === null) throw new DomainError("CONFLICT", "Identical request is already in progress; retry with the same key");
     return existing.response;
   }
-  const response = await work();
   try {
-    await db().insert(idempotency).values({ key: op.idempotencyKey, operation: op.operation, athleteId: "athleteId" in op ? op.athleteId : null, requestHash, response: response as Json });
+    const response = await work();
+    await db().update(idempotency).set({ response }).where(eq(idempotency.key, op.idempotencyKey));
+    return response;
   } catch (error) {
-    const [race] = await db().select().from(idempotency).where(eq(idempotency.key, op.idempotencyKey)).limit(1);
-    if (!race || race.requestHash !== requestHash) throw error;
-    return race.response;
+    await db().delete(idempotency).where(and(eq(idempotency.key, op.idempotencyKey), eq(idempotency.requestHash, requestHash)));
+    throw error;
   }
-  return response;
 }
 
 async function contextFor(athleteId: string) {
@@ -197,7 +200,7 @@ export async function executeOperation(input: unknown): Promise<Result> {
       await ensureAthlete(op.athleteId);
       const candidates = await db().select().from(exercises).where(or(eq(exercises.athleteId, op.athleteId), sql`${exercises.athleteId} IS NULL`));
       const needle = op.exerciseName.toLocaleLowerCase();
-      const exercise = candidates.find(e => e.canonicalName.toLocaleLowerCase() === needle || e.aliases.some(a => a.toLocaleLowerCase() === needle));
+      const exercise = candidates.find(e => matchesExerciseName(e, op.exerciseName));
       const filters = [eq(setActuals.athleteId, op.athleteId)];
       if (exercise) filters.push(or(eq(setActuals.exerciseId, exercise.id), sql`lower(${setActuals.exerciseName}) = ${exercise.canonicalName.toLocaleLowerCase()}`)!);
       else filters.push(sql`lower(${setActuals.exerciseName}) = ${needle}`);

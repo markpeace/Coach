@@ -150,6 +150,6 @@ export const idempotency = pgTable("idempotency", {
   operation: text("operation").notNull(),
   athleteId: uuid("athlete_id").references(() => athletes.id, { onDelete: "cascade" }),
   requestHash: text("request_hash").notNull(),
-  response: jsonb("response").$type<Record<string, unknown>>().notNull(),
+  response: jsonb("response").$type<Record<string, unknown> | Record<string, unknown>[] | null>(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });

@@ -1,9 +1,9 @@
 import { beforeAll, afterAll, describe, expect, it } from "vitest";
 import { PGlite } from "@electric-sql/pglite";
-import { readFile } from "node:fs/promises";
+import { readFile, readdir } from "node:fs/promises";
 
 const pg = new PGlite();
-beforeAll(async()=>{const migration=await readFile("drizzle/0000_initial.sql","utf8");await pg.exec(migration)});
+beforeAll(async()=>{for(const name of (await readdir("drizzle")).filter(name=>name.endsWith(".sql")).sort())await pg.exec(await readFile(`drizzle/${name}`,"utf8"))});
 afterAll(async()=>pg.close());
 
 describe("PostgreSQL migration and trust schema",()=>{
@@ -24,5 +24,6 @@ describe("PostgreSQL migration and trust schema",()=>{
   const row=(await pg.query<WorkoutProof>("select original_prescription,effective_prescription,actual from workouts where plan_id=$1",[plan.id])).rows[0];expect(row.original_prescription.prescription.load).toBe(14);expect(row.effective_prescription.prescription.load).toBe(12);expect(row.actual.sets[0].reps).toBe(10);
  });
  it("enforces material idempotency keys",async()=>{await pg.query("insert into idempotency(key,operation,request_hash,response) values ('same-key','createDraftPlan','hash-a','{}')");await expect(pg.query("insert into idempotency(key,operation,request_hash,response) values ('same-key','createDraftPlan','hash-b','{}')")).rejects.toThrow()});
+ it("supports an exclusive in-progress idempotency reservation",async()=>{await pg.query("insert into idempotency(key,operation,request_hash,response) values ('pending-key','lockPlan','hash-pending',null)");const pending=await pg.query<{response:unknown}>("select response from idempotency where key='pending-key'");expect(pending.rows[0].response).toBeNull();await pg.query("update idempotency set response='{}'::jsonb where key='pending-key'");const completed=await pg.query<{response:unknown}>("select response from idempotency where key='pending-key'");expect(completed.rows[0].response).toEqual({})});
  it("keeps feedback and Coach interpretation in different records",async()=>{const result=await pg.query<{workout_feedback:string;observation_count:number}>("select (select count(*)::text from workouts where feedback is not null) as workout_feedback,(select count(*)::int from observations) as observation_count");expect(Number(result.rows[0].workout_feedback)).toBeGreaterThanOrEqual(0);expect(result.rows[0].observation_count).toBe(0)});
 });
