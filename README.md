@@ -6,7 +6,7 @@ Each athlete has a distinct identity, goals, training priorities, metrics, locat
 
 ## Current position
 
-Lifecycle: **Discovery moving into MVP design**.
+Lifecycle: **MVP implementation approved and ready for autonomous Work execution**.
 
 The core product loop is:
 
@@ -26,27 +26,31 @@ progress interpretation
 next coaching decision
 ```
 
-The MVP is intended to test whether a persistent AI trainer can make personalised training planning and progression materially better than using an ordinary ChatGPT conversation without a durable training harness.
+The MVP tests whether a persistent AI trainer can make personalised training planning and progression materially better than using an ordinary ChatGPT conversation without a durable training harness.
 
-## Source of truth
+## Delivery source of truth
 
-Until a dedicated Linear team is created:
+Linear team: **Coach**.
 
-1. current direct product-owner instruction is authoritative;
-2. `docs/SSOT.md` routes durable repository memory;
-3. current product and architecture docs define landed decisions;
-4. future-possibility documents are explicitly non-MVP planning context.
+Active project: **First MVP: Persistent personal coach**.
 
-Once Linear is established, Linear will become the delivery and roadmap source of truth. GitHub will remain durable product/technical memory and implementation evidence.
+The approved autonomous implementation scope is **CCH-1 through CCH-26**, ending at one test-ready MVP candidate. **CCH-27 and CCH-28 are owner-led real-athlete validation and reconciliation and are not part of the autonomous build handoff.**
+
+Linear is the delivery/roadmap cockpit. GitHub remains durable product/technical memory and implementation evidence.
 
 ## Start here
 
 - [`AGENTS.md`](AGENTS.md)
 - [`docs/SSOT.md`](docs/SSOT.md)
+- [`docs/product/mvp-approved-scope.md`](docs/product/mvp-approved-scope.md)
 - [`docs/product/product-definition.md`](docs/product/product-definition.md)
-- [`docs/product/mvp-definition.md`](docs/product/mvp-definition.md)
-- [`docs/product/future-possibilities.md`](docs/product/future-possibilities.md)
+- [`docs/product/athlete-foundation.md`](docs/product/athlete-foundation.md)
+- [`docs/product/weekly-planning.md`](docs/product/weekly-planning.md)
+- [`docs/product/workout-execution.md`](docs/product/workout-execution.md)
+- [`docs/product/progress-learning.md`](docs/product/progress-learning.md)
 - [`docs/architecture/system-architecture.md`](docs/architecture/system-architecture.md)
+- [`docs/architecture/mvp-technical-contract.md`](docs/architecture/mvp-technical-contract.md)
+- [`docs/product/future-possibilities.md`](docs/product/future-possibilities.md)
 
 ## Architecture direction
 
@@ -68,8 +72,10 @@ Athlete
                           +--> durable PostgreSQL athlete ledger
 ```
 
-The governing principle is **LLM-reasoned and code-grounded**. The GPT supplies coaching judgement; code owns trusted identity, facts, plans, actuals, metrics, validation, provenance and durable state.
+The governing principle is **LLM-reasoned and code-grounded**. The GPT supplies coaching judgement and semantic interpretation; code owns trusted identity boundaries, durable facts, plans, actuals, metrics, validation, provenance and state history.
 
 ## Repository safety
 
-Do not commit athlete health/fitness data, OAuth tokens, API secrets, HealthKit exports or other personal data to this repository. Runtime athlete data belongs in the application data layer, not Git history.
+Do not commit athlete health/fitness data, access credentials, API secrets, HealthKit exports or other personal data to this repository. Runtime athlete data belongs in the application data layer, not Git history.
+
+The repository is currently public, so this rule is especially important. Repository visibility is not itself an authentication boundary for the deployed product.
