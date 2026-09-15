@@ -19,14 +19,16 @@ h2 { font-size: 1.35rem; letter-spacing: -.025em; margin: 0 0 12px; }
 h3 { font-size: 1rem; margin: 0 0 8px; }
 p { line-height: 1.55; }
 .muted { color: var(--muted); }
-.field { display: grid; gap: 6px; margin: 12px 0; }
+.field { display: grid; gap: 6px; margin: 12px 0; min-width: 0; }
 .field label { font-size: .78rem; font-weight: 750; color: var(--muted); }
-input, select, textarea { width: 100%; border: 1px solid #cbd2ca; background: #fff; color: var(--ink); border-radius: 12px; padding: 11px 12px; }
+input, select, textarea { width: 100%; min-width: 0; max-width: 100%; border: 1px solid #cbd2ca; background: #fff; color: var(--ink); border-radius: 12px; padding: 11px 12px; }
+input[type="date"] { display: block; }
 textarea { min-height: 90px; resize: vertical; }
 .button { border: 0; border-radius: 999px; padding: 11px 17px; background: var(--green); color: white; font-weight: 750; display: inline-flex; justify-content: center; align-items: center; gap: 7px; }
 .button.secondary { color: var(--green); background: var(--green-soft); }
 .button.ghost { color: var(--ink); background: transparent; border: 1px solid var(--line); }
 .button.warn { background: var(--rust); }
+.button.small { padding: 7px 11px; font-size: .72rem; }
 .button:disabled { opacity: .45; cursor: not-allowed; }
 .app { max-width: 1180px; margin: 0 auto; padding: 18px 18px 104px; }
 .topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 38px; }
@@ -36,7 +38,7 @@ textarea { min-height: 90px; resize: vertical; }
 .hero p { max-width: 680px; margin: 0; color: var(--muted); }
 .grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); }
 .stack { display: grid; gap: 14px; }
-.card { background: color-mix(in srgb, var(--card) 96%, transparent); border: 1px solid var(--line); border-radius: 20px; padding: 18px; box-shadow: 0 8px 28px rgba(28, 47, 37, .045); }
+.card { min-width: 0; background: color-mix(in srgb, var(--card) 96%, transparent); border: 1px solid var(--line); border-radius: 20px; padding: 18px; box-shadow: 0 8px 28px rgba(28, 47, 37, .045); }
 .card.accent { background: var(--green); color: white; border-color: var(--green); }
 .card.accent .muted { color: #c9d9d1; }
 .row { display: flex; flex-wrap: wrap; gap: 9px; align-items: center; }

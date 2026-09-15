@@ -20,9 +20,9 @@ For an empty test environment, create a fresh Neon branch/database and run the m
 
 ## Vercel topology
 
-The owner-test environment is the dedicated Vercel project `coach` (`prj_upoz4N1DtIrWDydxPcgLBCx7Dn5C`) in the `mark-peaces-projects-a5248ac1` team. It is not linked to GitHub. The MVP candidate therefore uses one explicit manual Preview deployment from a verified checkout, preventing pushes to `main` from producing builds. The stable Action origin is `https://coach-mark-peaces-projects-a5248ac1.vercel.app`.
+The owner-test environment is the dedicated Vercel project `coach` (`prj_upoz4N1DtIrWDydxPcgLBCx7Dn5C`) in the `mark-peaces-projects-a5248ac1` team, linked to `markpeace/Coach` through Git integration. CCH-26 owner testing uses the dedicated `preview/coach-mvp-owner` branch. Its stable branch alias and Action origin is `https://coach-git-preview-coach-mvp-owner-mark-peaces-projects-a5248ac1.vercel.app`.
 
-Preview is the only authorised target during MVP testing. No production deployment or promotion is part of this implementation batch.
+Pushes to `preview/coach-mvp-owner` create Preview deployments automatically. Preview is the only authorised target during MVP testing. Do not push `main`, create a duplicate manual deployment, or promote production as part of CCH-26.
 
 Preview-only environment variables:
 
@@ -30,13 +30,13 @@ Preview-only environment variables:
 - `HOUSEHOLD_PASSPHRASE`: private web access secret;
 - `SESSION_SECRET`: at least 32 random characters;
 - `GPT_ACTION_API_KEY`: a separate bearer key;
-- `NEXT_PUBLIC_APP_URL`: `https://coach-mark-peaces-projects-a5248ac1.vercel.app`.
+- `NEXT_PUBLIC_APP_URL`: `https://coach-git-preview-coach-mvp-owner-mark-peaces-projects-a5248ac1.vercel.app`.
 
 ## Authoritative deployment path
 
-The authoritative path for the MVP candidate is a single manual Vercel Preview deployment containing the runtime files from the final verified implementation commit. Do not enable Git integration or deploy the same source again merely to obtain another URL.
+The authoritative path for the MVP candidate is a single Git-integrated Preview deployment from `preview/coach-mvp-owner`. Batch related fixes, verify locally first where tooling permits, then push one coherent commit and use the resulting branch Preview. Do not manually deploy the same SHA.
 
-Use local lint, typecheck, unit/integration tests, GPT package verification and `next build` before the remote deployment. Remote deployment exists to prove Vercel, Neon, cookie/auth and browser behaviour together.
+Use local lint, typecheck, unit/integration tests, GPT package verification and `next build` before the remote deployment where the execution environment permits them. Remote deployment exists to prove Vercel, Neon, cookie/auth and browser behaviour together.
 
 ## Migration release rule
 
