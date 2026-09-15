@@ -21,11 +21,18 @@ function page(params:Params,error=""){
  const hidden=(name:string,value:string|undefined)=>value===undefined?"":`<input type="hidden" name="${name}" value="${esc(value)}">`;
  return `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Connect Coach</title><style>body{font-family:system-ui;max-width:520px;margin:60px auto;padding:24px;color:#18372d}label{display:block;font-weight:650;margin:18px 0 8px}input{width:100%;box-sizing:border-box;padding:12px;border:1px solid #bbc7bf;border-radius:10px}button{margin-top:20px;padding:12px 18px;border:0;border-radius:999px;background:#126047;color:white;font-weight:700}.error{color:#9b2c2c}</style></head><body><h1>Connect Coach</h1><p>Authorize this private ChatGPT app to read and update the Coach household training ledger.</p>${error?`<p class="error">${esc(error)}</p>`:""}<form method="post">${hidden("client_id",params.clientId)}${hidden("redirect_uri",params.redirectUri)}${hidden("state",params.state)}${hidden("scope",params.scope)}${hidden("code_challenge",params.codeChallenge)}${hidden("resource",params.resource)}<label for="passphrase">Household passphrase</label><input id="passphrase" name="passphrase" type="password" autocomplete="current-password" required><button type="submit">Authorize Coach</button></form></body></html>`;
 }
-const headers={"content-type":"text/html; charset=utf-8","cache-control":"no-store","content-security-policy":"default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'"};
+function headersFor(params:Params){
+ const callbackOrigin=new URL(params.redirectUri).origin;
+ return {
+  "content-type":"text/html; charset=utf-8",
+  "cache-control":"no-store",
+  "content-security-policy":`default-src 'none'; style-src 'unsafe-inline'; form-action 'self' ${callbackOrigin}; base-uri 'none'; frame-ancestors 'none'`,
+ };
+}
 export async function GET(request:Request){
  const url=new URL(request.url);const params=parse(url.searchParams,url.origin);
  if(!params)return new Response("Invalid OAuth authorization request",{status:400,headers:{"cache-control":"no-store"}});
- return new Response(page(params),{headers});
+ return new Response(page(params),{headers:headersFor(params)});
 }
 export async function POST(request:Request){
  const url=new URL(request.url);const form=await request.formData();
@@ -35,7 +42,7 @@ export async function POST(request:Request){
  const params=parse(values,url.origin);
  if(!params)return new Response("Invalid OAuth authorization request",{status:400,headers:{"cache-control":"no-store"}});
  const passphrase=form.get("passphrase");
- if(typeof passphrase!=="string"||!isValidPassphrase(passphrase))return new Response(page(params,"Passphrase not accepted."),{status:401,headers});
+ if(typeof passphrase!=="string"||!isValidPassphrase(passphrase))return new Response(page(params,"Passphrase not accepted."),{status:401,headers:headersFor(params)});
  const code=await createAuthorizationCode({issuer:url.origin,clientId:params.clientId,redirectUri:params.redirectUri,codeChallenge:params.codeChallenge,scope:params.scope,resource:params.resource});
  const redirect=new URL(params.redirectUri);redirect.searchParams.set("code",code);if(params.state)redirect.searchParams.set("state",params.state);redirect.searchParams.set("iss",url.origin);
  return Response.redirect(redirect,302);
