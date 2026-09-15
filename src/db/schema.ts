@@ -145,6 +145,12 @@ export const observations = pgTable("observations", {
   ...audit,
 });
 
+export const mcpOauthCodes = pgTable("mcp_oauth_codes", {
+  jti: text("jti").primaryKey(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
 export const idempotency = pgTable("idempotency", {
   key: text("key").primaryKey(),
   operation: text("operation").notNull(),

@@ -56,3 +56,21 @@ After deployment:
 ## Production
 
 Production is intentionally unconfigured/unpromoted for this MVP handback. Owner validation and reconciliation in CCH-27/28 precede any production-release decision.
+
+
+## Private ChatGPT MCP surface
+
+CCH-29 replaces the short-lived Custom GPT Action integration with a private custom MCP app. The stable owner-test MCP URL is:
+
+`https://coach-git-preview-coach-mvp-owner-mark-peaces-projects-a5248ac1.vercel.app/mcp`
+
+OAuth discovery and authorization are served by the same Coach host. The user authorizes with the existing household passphrase; the MCP endpoint itself requires the resulting Coach-scoped bearer token.
+
+Before scanning the endpoint in ChatGPT:
+
+1. ensure migration `0002_mcp_oauth_codes.sql` is applied to the dedicated Preview database;
+2. verify `/.well-known/oauth-protected-resource` and `/.well-known/oauth-authorization-server` return metadata;
+3. verify unauthenticated `/mcp` returns 401 with a `WWW-Authenticate` resource-metadata pointer;
+4. confirm the stable owner-test host is reachable by ChatGPT without an upstream Vercel Authentication challenge.
+
+The legacy `GPT_ACTION_API_KEY` and `gpt/openapi.json` remain during migration/rollback but are no longer the target conversational integration after CCH-29 is accepted.
