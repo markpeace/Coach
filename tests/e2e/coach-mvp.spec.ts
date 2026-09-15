@@ -46,5 +46,5 @@ test("complete persistent coaching loop with explicit athlete isolation",async({
  await page.goto("/athlete");await page.getByLabel("Active athlete").selectOption(alex.id);await expect(page.getByRole("heading",{name:`Alex ${suffix}`})).toBeVisible();await expect(page.getByText("Coach Rowan")).toBeVisible();
  await page.goto("/plan");await page.getByLabel("Week starting").fill(week);await expect(page.getByText("accepted baseline v2")).toBeVisible();await expect(page.getByText("adapted",{exact:true})).toBeVisible();
  await page.goto("/today");await page.getByLabel("View date").fill("2026-09-14");await expect(page.getByText("Upper strength")).toBeVisible();
- await page.goto("/progress");await page.getByLabel("Review through week starting").fill("2026-09-21");await expect(page.getByText(/sessions completed/)).toBeVisible();
+ await page.goto("/progress");await page.getByLabel("Review week starting").fill("2026-09-14");await expect(page.getByText(/sessions completed/)).toBeVisible();await expect(page.getByText("Review period: 2026-09-14 to 2026-09-20")).toBeVisible();
 });
