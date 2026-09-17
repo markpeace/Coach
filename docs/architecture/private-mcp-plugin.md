@@ -1,23 +1,39 @@
 # Private Coach MCP plugin architecture
 
-Status: Current for CCH-29
+Status: Current
 
 ## Decision
 
-Coach's supported conversational surface is moving from a Custom GPT Action to a **private ChatGPT custom MCP app**. The app remains a thin adapter over the existing Coach domain service and Neon ledger.
+Coach's supported conversational surface is a **private ChatGPT MCP app** backed by the existing Coach domain service and Neon ledger. MVP v2 adds a repository-owned Agent Skill above that app so behavioural coaching guidance is explicit and versioned without duplicating server-enforced trust rules.
 
-`ChatGPT private Coach app → OAuth-protected /mcp → executeOperation() → Neon`
+```text
+ChatGPT + Coach skill
+        ↓
+OAuth-protected /mcp
+        ↓
+executeOperation()
+        ↓
+Neon athlete ledger
+```
 
 The web app continues to call the same domain service through `/api/v1/action`. No second athlete memory, planning engine or workout model is introduced.
 
+## Responsibility split
+
+- **Coach skill:** cross-tool coaching behaviour, onboarding cadence, context-read economy, planning/revision/lock/adaptation workflow, evidence handling, persistence use, truthful failure behaviour and decision-trace guidance.
+- **MCP tools:** bounded read/write capabilities and operation-specific semantics.
+- **Domain/server:** authentication boundaries, athlete isolation, validation, idempotency, versions/conflicts and durable-state invariants.
+
+See `docs/architecture/coach-skill.md` and `skills/coach/SKILL.md`.
+
 ## MCP transport
 
-The remote endpoint is `/mcp` and uses the official TypeScript MCP server SDK v2. The handler serves the modern 2026-07-28 protocol and its stateless 2025 compatibility path from the same endpoint.
+The remote endpoint is `/mcp` and uses the TypeScript MCP server SDK v2. The handler serves the modern protocol and its stateless compatibility path from the same endpoint.
 
 The MCP surface deliberately exposes:
 
 - dedicated read tools for athlete list/context, weekly planning context, plan/today, exercise history and progress;
-- one bounded write tool backed by the existing validated `CoachOperation` union.
+- one bounded write tool backed by the validated `CoachOperation` union.
 
 Read tools are annotated read-only. The write tool is annotated as closed-world, destructive-capable and idempotent so the host can apply appropriate confirmation behaviour.
 
@@ -51,7 +67,7 @@ This is intentionally a private MVP authorization service, not a general identit
 
 ## Conversational behaviour
 
-The existing `gpt/` package remains durable migration material and behavioural guidance, but OpenAPI Actions are no longer the active integration contract. The acceptance scenarios remain the behavioural contract for the conversational surface.
+The active behavioural contract is the repository-owned Coach skill at `skills/coach/SKILL.md` plus its behavioural acceptance reference. The legacy `gpt/` package remains migration/history material; OpenAPI Actions are no longer the active integration contract.
 
 The model must still:
 
@@ -59,27 +75,27 @@ The model must still:
 - use the durable ledger rather than prose memory;
 - preserve accepted plan baselines and explicit adaptations;
 - distinguish prescription, actuals, feedback and interpretation;
-- never claim writes succeeded when a tool returned an error.
+- never claim writes succeeded when a tool returned an error;
+- avoid exhaustive onboarding or unnecessary context reads;
+- never persist hidden chain-of-thought.
 
 ## Deployment
 
-CCH-29 remains Preview-only. The intended private app server URL is the stable owner-test branch alias plus `/mcp`.
+The private app remains Preview-only unless a separate production release is approved. The stable owner-test MCP URL uses the owner-test branch alias plus `/mcp`.
 
 The ChatGPT server must be able to reach the MCP/OAuth URLs without an upstream Vercel login wall. If Preview Protection blocks the scan, resolve that at the Vercel access layer for the dedicated owner-test endpoint/domain; do not weaken Coach's own OAuth requirement.
 
+A repository change does not automatically justify a new Preview. Batch coherent runtime changes and avoid duplicate Git/manual deployments.
+
 ## Verification contract
 
-Before CCH-29 is Done:
+For conversational-surface changes:
 
-1. apply the additive OAuth-code migration to the dedicated Coach Preview database;
-2. pass lint/typecheck/tests/build, including MCP OAuth unit tests;
-3. verify public OAuth metadata and unauthenticated MCP 401 behaviour;
-4. scan the MCP endpoint successfully from ChatGPT's private New Plugin flow;
-5. complete OAuth with the household passphrase;
-6. verify tool discovery;
-7. execute a representative read and write from ChatGPT;
-8. independently confirm the write in Neon/web app;
-9. verify a cross-athlete object request fails closed;
-10. reconcile CCH-26 and durable setup/deployment docs.
+1. preserve current MCP authentication and tool discovery;
+2. pass static/type/test/build checks relevant to the change;
+3. verify cross-athlete failures remain closed;
+4. verify behavioural scenarios relevant to the changed skill/tool semantics;
+5. if live durable state changes, follow the CCH-31 preservation/snapshot/migration contract first;
+6. use one coherent remote Preview only when remote integration evidence is actually required.
 
-No public directory submission and no production promotion are part of this work.
+No public directory submission and no production promotion are implied by MVP v2 work.

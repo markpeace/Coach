@@ -22,32 +22,61 @@ If sources conflict, surface the conflict rather than silently choosing a lower-
 ## Current durable product memory
 
 - `docs/product/product-definition.md`: landed product purpose, user model, experience principles and known domain concepts.
-- `docs/product/mvp-approved-scope.md`: current approval boundary for autonomous MVP implementation and its explicit exclusions.
-- `docs/product/athlete-foundation.md`: current athlete identity, persona, priorities, qualitative/quantitative goal model, events, locations/equipment and metrics foundation.
-- `docs/product/weekly-planning.md`: current weekly planning ritual, availability, temporary context, plan lifecycle, session intent, adaptation and athlete preference model.
-- `docs/product/workout-execution.md`: current workout execution model, prescription/effective/actual separation, modality-aware logging, athlete-provided evidence, adaptation and feedback boundary.
-- `docs/product/progress-learning.md`: current progress, weekly review, goal assessment, coaching observation and next-week learning model.
-- `docs/product/mvp-definition.md`: detailed MVP design history/hypothesis; use `mvp-approved-scope.md` for current implementation authority where status differs.
-- `docs/product/future-possibilities.md`: credible non-MVP pathways that should not silently enter current delivery.
+- `docs/product/athlete-foundation.md`: athlete identity, persona, priorities, qualitative/quantitative goal model, events, locations/equipment and metrics foundation.
+- `docs/product/weekly-planning.md`: weekly planning ritual, availability, temporary context, plan lifecycle, session intent, adaptation and athlete preference model.
+- `docs/product/workout-execution.md`: workout execution model, prescription/effective/actual separation, modality-aware logging, athlete-provided evidence, adaptation and feedback boundary.
+- `docs/product/progress-learning.md`: progress, weekly review, goal assessment, coaching observation and next-week learning model.
+- `docs/product/mvp-approved-scope.md`: historical MVP v1 implementation approval boundary; use Linear for current v2 scope.
+- `docs/product/mvp-definition.md`: detailed MVP v1 design history/hypothesis.
+- `docs/product/future-possibilities.md`: credible future pathways that should not silently enter current delivery.
 
-## Current architecture memory
+## Current conversational/architecture memory
 
-- `docs/architecture/system-architecture.md`: high-level system shape and GPT/code responsibility boundary.
-- `docs/architecture/mvp-technical-contract.md`: current test-ready MVP implementation, access, API, deployment and verification contract.
+- `docs/architecture/system-architecture.md`: high-level system shape and model/code responsibility boundary.
+- `docs/architecture/mvp-technical-contract.md`: MVP v1 implementation/access/API contract; retain for compatibility/history where not superseded.
+- `docs/architecture/implemented-mvp.md`: delivered MVP v1 technical shape.
+- `docs/architecture/private-mcp-plugin.md`: private OAuth-protected ChatGPT MCP integration.
+- `docs/architecture/coach-skill.md`: MVP v2 skill/MCP/domain responsibility split and skill packaging decision.
+- `skills/coach/SKILL.md`: versioned Coach behavioural operating model.
+- `skills/coach/references/behavioral-acceptance.md`: behavioural scenarios used to detect conversational regressions.
+- `docs/operations/setup-and-deployment.md`: current Preview/Neon/Vercel operational topology.
 
 ## Delivery state
 
-Coach has moved from approved MVP implementation into the test-ready handback boundary.
+Coach has moved from MVP v1 implementation and owner validation into an active MVP v2 increment while real-athlete validation continues in parallel.
 
 Linear team: **Coach**.
 
-Active project: **First MVP: Persistent personal coach**.
+Active project: **MVP v2: Observable, evidence-rich coaching**.
 
-Implementation scope **CCH-1 through CCH-26** is represented by the current application, migration, tests, GPT package and deployment documents. `docs/architecture/implemented-mvp.md` records the delivered technical shape; `docs/operations/setup-and-deployment.md` records the operational topology.
+The original project **First MVP: Persistent personal coach** remains relevant for CCH-27 real-athlete evidence and CCH-28 reconciliation. Real-use evidence can still reorder, narrow or stop v2 work.
 
-**CCH-27 and CCH-28 are owner-led follow-on validation/reconciliation and are not part of the autonomous build handoff.**
+MVP v2 priorities currently include:
 
-Linear is now the delivery cockpit. Do not create a second backlog in GitHub.
+- explicit Coach skill / behavioural contract;
+- safe non-destructive evolution of live athlete data;
+- structured decision traces and athlete diagnostic export;
+- richer modality-appropriate evidence ingestion;
+- selective progress visualisation;
+- integrated real-use validation.
+
+Linear is the delivery cockpit. Do not create a second backlog in GitHub.
+
+## Live-data preservation
+
+Coach now contains real athlete history in the dedicated Neon ledger. Treat it as production-like state even though the application remains Preview-only.
+
+The CCH-31 preservation contract governs any durable-state-changing v2 work:
+
+- no destructive reset/reseed shortcuts on the live branch;
+- prefer additive/backward-compatible migrations;
+- create a named manual Neon snapshot immediately before each state-affecting migration;
+- use temporary Neon branches/PGlite for migration experiments;
+- capture pre-change continuity/integrity evidence and verify it after migration;
+- prefer forward repair when post-migration athlete writes would otherwise be lost;
+- any branch replacement/restore that can discard newer writes requires explicit product-owner approval.
+
+The baseline pre-v2 snapshot created during CCH-31 is named `cch31-pre-v2-live-baseline-2026-09-17`.
 
 ## Documentation status meanings
 
@@ -60,4 +89,4 @@ Linear is now the delivery cockpit. Do not create a second backlog in GitHub.
 
 ## Repository rule
 
-GitHub records durable understanding and implementation evidence. It must not become a second backlog or a storage location for live athlete data.
+GitHub records durable understanding and implementation evidence. It must not become a second backlog or a storage location for live athlete data, diagnostic exports or credentials.
