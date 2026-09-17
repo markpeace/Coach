@@ -84,6 +84,35 @@ export const workoutActualSchema = z.object({
 export const feedbackSchema = z.object({ difficulty: z.enum(["easy", "about_right", "hard", "very_hard"]), note: z.string().max(1000).optional() });
 export const evidenceSchema = z.object({ source: sourceSchema, description: z.string().min(1).max(300), fields: z.array(z.string()).max(40), retainedRaw: z.literal(false).default(false) });
 
+export const decisionTraceReferenceSchema = z.object({
+  type: z.enum(["athlete_context", "weekly_context", "metric_reading", "plan", "plan_version", "workout", "set_actual", "review", "observation", "external_evidence"]),
+  id: z.string().min(1).max(200),
+  version: z.number().int().positive().optional(),
+  role: z.string().max(300).optional(),
+});
+
+export const decisionTraceRuntimeMetadataSchema = z.object({
+  coachSkillVersion: z.string().max(40).optional(),
+  mcpServerVersion: z.string().max(40).optional(),
+  appSchemaVersion: z.string().max(40).optional(),
+  sourceSurface: z.enum(["chatgpt", "web_app", "import_worker", "other"]).optional(),
+  modelLabel: z.string().max(80).optional(),
+  providerVersion: z.string().max(80).optional(),
+});
+
+export const decisionTraceSchema = z.object({
+  decisionType: z.enum(["onboarding_sufficient", "plan_created", "plan_revised", "plan_locked", "plan_adapted", "workout_adapted", "progression", "review", "observation", "evidence_reconciliation"]),
+  occurredAt: z.string().datetime().optional(),
+  userIntentSummary: z.string().max(500).optional(),
+  decisionSummary: z.string().min(1).max(800),
+  rationaleSummary: z.string().min(1).max(1200),
+  evidenceRefs: z.array(decisionTraceReferenceSchema).max(30).default([]),
+  assumptions: z.array(z.string().max(400)).max(10).default([]),
+  uncertainty: z.array(z.string().max(400)).max(10).default([]),
+  outputRefs: z.array(decisionTraceReferenceSchema).max(20).default([]),
+  runtimeMetadata: decisionTraceRuntimeMetadataSchema.default({}),
+});
+
 const withAthlete = z.object({ athleteId: uuid });
 const withIdempotency = z.object({ idempotencyKey: z.string().min(8).max(200) });
 export const operationSchema = z.discriminatedUnion("operation", [
@@ -114,11 +143,13 @@ export const operationSchema = z.discriminatedUnion("operation", [
   z.object({ operation: z.literal("createReview"), periodStart: isoDate, periodEnd: isoDate, summary: z.string().min(1).max(1200), goalAssessments: z.array(z.object({ goalId: uuid, status: z.enum(["progressing_well", "progressing", "unclear", "stalled", "needs_review"]), summary: z.string().max(400) })).max(30), recommendedDirection: z.string().min(1).max(800), evidenceRefs: z.array(z.string()).max(40) }).merge(withAthlete).merge(withIdempotency),
   z.object({ operation: z.literal("addObservation"), text: z.string().min(1).max(600), evidenceRefs: z.array(z.string()).max(30) }).merge(withAthlete).merge(withIdempotency),
   z.object({ operation: z.literal("retireObservation"), observationId: uuid }).merge(withAthlete).merge(withIdempotency),
+  z.object({ operation: z.literal("recordDecisionTrace"), interactionId: uuid.optional(), trace: decisionTraceSchema }).merge(withAthlete).merge(withIdempotency),
 ]);
 
 export type CoachOperation = z.infer<typeof operationSchema>;
 export type PlanPayload = z.infer<typeof planPayloadSchema>;
 export type PlanSession = z.infer<typeof planSessionSchema>;
+export type DecisionTrace = z.infer<typeof decisionTraceSchema>;
 
 export function validateContext(kind: "priority" | "preference" | "goal" | "event" | "location", data: Record<string, unknown>) {
   return ({ priority: prioritySchema, preference: preferenceSchema, goal: goalSchema, event: eventSchema, location: locationSchema } as const)[kind].parse(data);

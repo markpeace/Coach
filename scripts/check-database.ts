@@ -7,8 +7,12 @@ try {
   const [row] = await sql<{ table_count: number }[]>`
     SELECT count(*)::int AS table_count FROM information_schema.tables WHERE table_schema = 'public'
   `;
-  if (!row || row.table_count < 12) throw new Error(`Expected at least 12 public tables, found ${row?.table_count ?? 0}`);
-  console.log(`Database schema verified (${row.table_count} tables)`);
+  if (!row || row.table_count < 15) throw new Error(`Expected at least 15 public tables, found ${row?.table_count ?? 0}`);
+  const [trace] = await sql<{ trace_count: number }[]>`
+    SELECT count(*)::int AS trace_count FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'decision_traces'
+  `;
+  if (!trace || trace.trace_count !== 1) throw new Error("Expected decision_traces table");
+  console.log(`Database schema verified (${row.table_count} tables, decision traces available)`);
 } finally {
   await sql.end();
 }

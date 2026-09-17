@@ -7,7 +7,7 @@ beforeAll(async()=>{for(const name of (await readdir("drizzle")).filter(name=>na
 afterAll(async()=>pg.close());
 
 describe("PostgreSQL migration and trust schema",()=>{
- it("applies the reproducible migration",async()=>{const result=await pg.query<{count:number}>("select count(*)::int as count from information_schema.tables where table_schema='public'");expect(result.rows[0].count).toBeGreaterThanOrEqual(13)});
+ it("applies the reproducible migration",async()=>{const result=await pg.query<{count:number}>("select count(*)::int as count from information_schema.tables where table_schema='public'");expect(result.rows[0].count).toBeGreaterThanOrEqual(15)});
  it("isolates athlete context, metrics and plans by athlete",async()=>{
   const a=(await pg.query<{id:string}>("insert into athletes(name,display_name) values ('Alex Fixture','Alex'),('Blair Fixture','Blair') returning id")).rows;
   await pg.query("insert into athlete_context(athlete_id,kind,data) values ($1,'goal',$2::jsonb),($3,'goal',$4::jsonb)",[a[0].id,JSON.stringify({title:"Alex goal"}),a[1].id,JSON.stringify({title:"Blair goal"})]);
@@ -22,6 +22,15 @@ describe("PostgreSQL migration and trust schema",()=>{
   await pg.query("insert into workouts(athlete_id,plan_id,session_key,modality,status,original_prescription,effective_prescription,actual) values ($1,$2,'s1','strength','completed',$3::jsonb,$4::jsonb,$5::jsonb)",[athlete.id,plan.id,JSON.stringify(baseline.sessions[0]),JSON.stringify(effective.sessions[0]),JSON.stringify({sets:[{reps:10,load:12}]})]);
   type WorkoutProof={original_prescription:{prescription:{load:number}};effective_prescription:{prescription:{load:number}};actual:{sets:Array<{reps:number}>}};
   const row=(await pg.query<WorkoutProof>("select original_prescription,effective_prescription,actual from workouts where plan_id=$1",[plan.id])).rows[0];expect(row.original_prescription.prescription.load).toBe(14);expect(row.effective_prescription.prescription.load).toBe(12);expect(row.actual.sets[0].reps).toBe(10);
+ });
+ it("stores decision traces additively and keeps them athlete scoped",async()=>{
+  const alex=(await pg.query<{id:string}>("select id from athletes where display_name='Alex'")).rows[0];
+  const blair=(await pg.query<{id:string}>("select id from athletes where display_name='Blair'")).rows[0];
+  await pg.query("insert into decision_traces(athlete_id,decision_type,user_intent_summary,decision_summary,rationale_summary,evidence_refs,output_refs,runtime_metadata) values ($1,'plan_created','Plan next week','Create a three-session week','Balances strength priority with available time',$2::jsonb,$3::jsonb,$4::jsonb)",[alex.id,JSON.stringify([{type:"athlete_context",id:"goal-1",role:"primary strength goal"}]),JSON.stringify([{type:"plan",id:"plan-1",version:1}]),JSON.stringify({coachSkillVersion:"0.2.0",mcpServerVersion:"0.3.0"})]);
+  const alexRows=await pg.query<{decision_summary:string}>("select decision_summary from decision_traces where athlete_id=$1",[alex.id]);
+  const blairRows=await pg.query("select * from decision_traces where athlete_id=$1",[blair.id]);
+  expect(alexRows.rows.map(r=>r.decision_summary)).toEqual(["Create a three-session week"]);
+  expect(blairRows.rows).toHaveLength(0);
  });
  it("enforces material idempotency keys",async()=>{await pg.query("insert into idempotency(key,operation,request_hash,response) values ('same-key','createDraftPlan','hash-a','{}')");await expect(pg.query("insert into idempotency(key,operation,request_hash,response) values ('same-key','createDraftPlan','hash-b','{}')")).rejects.toThrow()});
  it("supports an exclusive in-progress idempotency reservation",async()=>{await pg.query("insert into idempotency(key,operation,request_hash,response) values ('pending-key','lockPlan','hash-pending',null)");const pending=await pg.query<{response:unknown}>("select response from idempotency where key='pending-key'");expect(pending.rows[0].response).toBeNull();await pg.query("update idempotency set response='{}'::jsonb where key='pending-key'");const completed=await pg.query<{response:unknown}>("select response from idempotency where key='pending-key'");expect(completed.rows[0].response).toEqual({})});

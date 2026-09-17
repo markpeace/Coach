@@ -2,7 +2,7 @@ import "server-only";
 import { createHash } from "node:crypto";
 import { and, asc, desc, eq, gte, inArray, lte, or, sql } from "drizzle-orm";
 import { db } from "@/db/client";
-import { athleteContext, athletes, exercises, idempotency, metricDefinitions, metricReadings, observations, plans, planVersions, reviews, setActuals, weeklyContext, workouts } from "@/db/schema";
+import { athleteContext, athletes, decisionTraces, exercises, idempotency, metricDefinitions, metricReadings, observations, plans, planVersions, reviews, setActuals, weeklyContext, workouts } from "@/db/schema";
 import { operationSchema, planPayloadSchema, type CoachOperation, validateContext } from "./contracts";
 import { assertWorkoutMutable, DomainError, matchesExerciseName } from "./invariants";
 
@@ -288,6 +288,25 @@ export async function executeOperation(input: unknown): Promise<Result> {
       const [updated] = await db().update(observations).set({ active: false, retiredAt: new Date(), updatedAt: new Date() }).where(and(eq(observations.id, op.observationId), eq(observations.athleteId, op.athleteId))).returning();
       if (!updated) throw new DomainError("NOT_FOUND", "Observation not found for this athlete");
       return updated;
+    });
+    case "recordDecisionTrace": return idempotent(op, async () => {
+      await ensureAthlete(op.athleteId);
+      const [created] = await db().insert(decisionTraces).values({
+        athleteId: op.athleteId,
+        ...(op.interactionId ? { interactionId: op.interactionId } : {}),
+        decisionType: op.trace.decisionType,
+        ...(op.trace.occurredAt ? { occurredAt: new Date(op.trace.occurredAt) } : {}),
+        userIntentSummary: op.trace.userIntentSummary,
+        decisionSummary: op.trace.decisionSummary,
+        rationaleSummary: op.trace.rationaleSummary,
+        evidenceRefs: op.trace.evidenceRefs,
+        assumptions: op.trace.assumptions,
+        uncertainty: op.trace.uncertainty,
+        outputRefs: op.trace.outputRefs,
+        runtimeMetadata: op.trace.runtimeMetadata,
+        traceSchemaVersion: 1,
+      }).returning();
+      return created;
     });
   }
 }

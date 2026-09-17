@@ -1,4 +1,4 @@
-import { boolean, date, integer, jsonb, numeric, pgEnum, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
+import { boolean, date, index, integer, jsonb, numeric, pgEnum, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 
 export const planStatus = pgEnum("plan_status", ["draft", "locked", "completed", "superseded"]);
 export const workoutStatus = pgEnum("workout_status", ["not_started", "in_progress", "completed", "partial", "skipped", "missed"]);
@@ -144,6 +144,24 @@ export const observations = pgTable("observations", {
   retiredAt: timestamp("retired_at", { withTimezone: true }),
   ...audit,
 });
+
+export const decisionTraces = pgTable("decision_traces", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  athleteId: uuid("athlete_id").notNull().references(() => athletes.id, { onDelete: "cascade" }),
+  interactionId: uuid("interaction_id").notNull().defaultRandom(),
+  decisionType: text("decision_type").notNull(),
+  occurredAt: timestamp("occurred_at", { withTimezone: true }).notNull().defaultNow(),
+  userIntentSummary: text("user_intent_summary"),
+  decisionSummary: text("decision_summary").notNull(),
+  rationaleSummary: text("rationale_summary").notNull(),
+  evidenceRefs: jsonb("evidence_refs").$type<Record<string, unknown>[]>().notNull().default([]),
+  assumptions: jsonb("assumptions").$type<string[]>().notNull().default([]),
+  uncertainty: jsonb("uncertainty").$type<string[]>().notNull().default([]),
+  outputRefs: jsonb("output_refs").$type<Record<string, unknown>[]>().notNull().default([]),
+  runtimeMetadata: jsonb("runtime_metadata").$type<Record<string, unknown>>().notNull().default({}),
+  traceSchemaVersion: integer("trace_schema_version").notNull().default(1),
+  ...audit,
+}, (t) => [index("decision_traces_athlete_time").on(t.athleteId, t.occurredAt)]);
 
 export const mcpOauthCodes = pgTable("mcp_oauth_codes", {
   jti: text("jti").primaryKey(),
