@@ -43,11 +43,11 @@ function exerciseKey(row: SetActual) {
   return row.exerciseId ? `id:${row.exerciseId}` : `name:${row.exerciseName.trim().toLocaleLowerCase()}`;
 }
 
-export function buildPlanReality(plans: ProgressPlan[], workouts: ProgressWorkout[]) {
+export function buildPlanReality(plans: ProgressPlan[], workouts: ProgressWorkout[], periodStart?: string, periodEnd?: string) {
   const bySession = new Map(workouts.map(workout => [keyFor(workout.planId, workout.sessionKey), workout]));
-  return plans.flatMap(plan => {
+  return plans.filter(plan => plan.status === "locked").flatMap(plan => {
     const payload = planPayloadSchema.parse(plan.currentPayload);
-    return payload.sessions.map(session => {
+    return payload.sessions.filter(session => (!periodStart || session.date >= periodStart) && (!periodEnd || session.date <= periodEnd)).map(session => {
       const workout = bySession.get(keyFor(plan.id, session.key));
       return {
         planId: plan.id,

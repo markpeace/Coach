@@ -16,12 +16,13 @@ const plan = {
 
 describe("progress model", () => {
   it("matches arbitrary plan sessions to their own workouts without assuming weekdays or exercise names", () => {
-    const sessions = buildPlanReality([plan], [
+    const sessions = buildPlanReality([plan, { ...plan, id: "draft-plan", status: "draft", currentPayload: { ...plan.currentPayload, sessions: [{ key: "draft", date: "2026-09-15", title: "Draft only", intendedStimulus: "Draft", durationMinutes: 20, modality: "strength", prescription: { exercises: [{ exerciseName: "Draft lift", sets: [{ reps: 5 }] }] } }] } }], [
       { id: "workout-a", planId: "plan-a", sessionKey: "one", modality: "strength", status: "completed", actual: { durationMinutes: 42 }, feedback: null, completedAt: "2026-09-14T10:00:00Z" },
       { id: "other-plan", planId: "plan-b", sessionKey: "two", modality: "strength", status: "completed", actual: { durationMinutes: 30 }, feedback: null, completedAt: "2026-09-16T10:00:00Z" },
-    ]);
-    expect(sessions.map(session => session.status)).toEqual(["completed", "planned"]);
-    expect(summarisePlanReality(sessions)).toEqual({ planned: 2, completed: 1, partial: 0, skipped: 0, missed: 0, inProgress: 0 });
+    ], "2026-09-14", "2026-09-14");
+    expect(sessions.map(session => session.status)).toEqual(["completed"]);
+    expect(sessions[0].date).toBe("2026-09-14");
+    expect(summarisePlanReality(sessions)).toEqual({ planned: 1, completed: 1, partial: 0, skipped: 0, missed: 0, inProgress: 0 });
   });
 
   it("labels arbitrary metric readings from their definitions and preserves sparse history", () => {

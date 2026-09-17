@@ -255,9 +255,8 @@ export async function executeOperation(input: unknown): Promise<Result> {
     case "getProgress": {
       await ensureAthlete(op.athleteId);
       const historyStart = op.historyStart ?? op.periodStart;
-      const [periodPlanRows, historyPlanRows, workoutRows, definitionRows, readingRows, contextRows, reviewRows, observationRows, setRows] = await Promise.all([
-        db().select().from(plans).where(and(eq(plans.athleteId, op.athleteId), gte(plans.weekStart, op.periodStart), lte(plans.weekStart, op.periodEnd))).orderBy(asc(plans.weekStart)),
-        db().select().from(plans).where(and(eq(plans.athleteId, op.athleteId), gte(plans.weekStart, historyStart), lte(plans.weekStart, op.periodEnd))).orderBy(asc(plans.weekStart)),
+      const [historyPlanRows, workoutRows, definitionRows, readingRows, contextRows, reviewRows, observationRows, setRows] = await Promise.all([
+        db().select().from(plans).where(and(eq(plans.athleteId, op.athleteId), eq(plans.status, "locked"), gte(plans.weekStart, historyStart), lte(plans.weekStart, op.periodEnd))).orderBy(asc(plans.weekStart)),
         db().select().from(workouts).where(eq(workouts.athleteId, op.athleteId)).orderBy(desc(workouts.updatedAt)).limit(250),
         db().select().from(metricDefinitions).where(and(eq(metricDefinitions.athleteId, op.athleteId), eq(metricDefinitions.active, true))).orderBy(asc(metricDefinitions.displayName)),
         db().select().from(metricReadings).where(and(eq(metricReadings.athleteId, op.athleteId), gte(metricReadings.measuredAt, new Date(`${historyStart}T00:00:00Z`)), lte(metricReadings.measuredAt, new Date(`${op.periodEnd}T23:59:59Z`)))).orderBy(asc(metricReadings.measuredAt)),
@@ -266,15 +265,15 @@ export async function executeOperation(input: unknown): Promise<Result> {
         db().select().from(observations).where(and(eq(observations.athleteId, op.athleteId), eq(observations.active, true))).orderBy(desc(observations.updatedAt)),
         db().select().from(setActuals).where(eq(setActuals.athleteId, op.athleteId)).orderBy(asc(setActuals.updatedAt)),
       ]);
-      const periodPlans = await Promise.all(periodPlanRows.map(async plan => {
+      const historyPlans = await Promise.all(historyPlanRows.map(async plan => {
         const state = await getPlanState(op.athleteId, plan.id);
         return { id: plan.id, weekStart: plan.weekStart, status: plan.status, currentPayload: state.current.payload };
       }));
       const historyPlanIds = new Set(historyPlanRows.map(plan => plan.id));
-      const periodPlanIds = new Set(periodPlanRows.map(plan => plan.id));
       const historyWorkouts = workoutRows.filter(workout => historyPlanIds.has(workout.planId));
-      const periodWorkouts = workoutRows.filter(workout => periodPlanIds.has(workout.planId));
-      const planReality = buildPlanReality(periodPlans, periodWorkouts);
+      const planReality = buildPlanReality(historyPlans, historyWorkouts, op.periodStart, op.periodEnd);
+      const periodPlanIds = new Set(planReality.map(session => session.planId));
+      const periodWorkouts = historyWorkouts.filter(workout => periodPlanIds.has(workout.planId));
       const factualSummary = summarisePlanReality(planReality);
       const metricSeries = buildMetricSeries(definitionRows, readingRows);
       const strengthAnchors = buildStrengthAnchors(historyWorkouts, setRows);
