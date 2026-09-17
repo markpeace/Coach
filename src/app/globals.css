@@ -67,3 +67,22 @@ pre { white-space: pre-wrap; word-break: break-word; font-size: .75rem; }
   .bottom-nav { top: 22px; bottom: auto; left: 50%; width: 390px; transform: translateX(-50%); }
   .topbar { margin-bottom: 68px; }
 }
+
+/* Evidence-led Progress */
+.section-heading { margin: 8px 0 12px; }
+.section-heading h2 { margin-bottom: 4px; }
+.section-heading p { margin: 0 0 4px; }
+.progress-list { display: grid; gap: 0; margin-top: 12px; }
+.progress-session { display: flex; justify-content: space-between; gap: 14px; align-items: flex-start; padding: 13px 0; border-top: 1px solid var(--line); }
+.progress-session:first-child { border-top: 0; }
+.progress-session p { margin: 4px 0 0; }
+.week-summary { margin-bottom: 0; }
+.metric.compact { font-size: 1.35rem; white-space: nowrap; }
+.metric-unit { font-size: .8rem; font-weight: 750; color: var(--muted); letter-spacing: 0; }
+.metric-cards, .anchor-grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); }
+.metric-card, .anchor-card { min-width: 0; background: var(--card); border: 1px solid var(--line); border-radius: 17px; padding: 15px; }
+.metric-card p, .anchor-card p { margin: 7px 0 0; }
+.sparkline { width: 120px; height: 34px; color: var(--green); overflow: visible; }
+.sparkline polyline { fill: none; stroke: currentColor; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+.more-metrics { margin-top: 12px; }
+.metric-cards.nested { margin-top: 14px; }

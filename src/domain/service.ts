@@ -5,6 +5,7 @@ import { db } from "@/db/client";
 import { athleteContext, athletes, decisionTraces, exercises, idempotency, metricDefinitions, metricReadings, observations, plans, planVersions, reviews, setActuals, weeklyContext, workouts } from "@/db/schema";
 import { operationSchema, planPayloadSchema, type CoachOperation, validateContext } from "./contracts";
 import { assertWorkoutMutable, DomainError, matchesExerciseName } from "./invariants";
+import { buildMetricSeries, buildPlanReality, buildStrengthAnchors, summarisePlanReality } from "./progress";
 
 type Json = Record<string, unknown>;
 type Result = Json | Json[];
@@ -253,26 +254,60 @@ export async function executeOperation(input: unknown): Promise<Result> {
     });
     case "getProgress": {
       await ensureAthlete(op.athleteId);
-      const [planRows, workoutRows, readingRows, contextRows, reviewRows, observationRows] = await Promise.all([
+      const historyStart = op.historyStart ?? op.periodStart;
+      const [periodPlanRows, historyPlanRows, workoutRows, definitionRows, readingRows, contextRows, reviewRows, observationRows, setRows] = await Promise.all([
         db().select().from(plans).where(and(eq(plans.athleteId, op.athleteId), gte(plans.weekStart, op.periodStart), lte(plans.weekStart, op.periodEnd))).orderBy(asc(plans.weekStart)),
-        db().select().from(workouts).where(eq(workouts.athleteId, op.athleteId)).orderBy(desc(workouts.updatedAt)).limit(100),
-        db().select().from(metricReadings).where(and(eq(metricReadings.athleteId, op.athleteId), gte(metricReadings.measuredAt, new Date(`${op.periodStart}T00:00:00Z`)), lte(metricReadings.measuredAt, new Date(`${op.periodEnd}T23:59:59Z`)))).orderBy(asc(metricReadings.measuredAt)),
+        db().select().from(plans).where(and(eq(plans.athleteId, op.athleteId), gte(plans.weekStart, historyStart), lte(plans.weekStart, op.periodEnd))).orderBy(asc(plans.weekStart)),
+        db().select().from(workouts).where(eq(workouts.athleteId, op.athleteId)).orderBy(desc(workouts.updatedAt)).limit(250),
+        db().select().from(metricDefinitions).where(and(eq(metricDefinitions.athleteId, op.athleteId), eq(metricDefinitions.active, true))).orderBy(asc(metricDefinitions.displayName)),
+        db().select().from(metricReadings).where(and(eq(metricReadings.athleteId, op.athleteId), gte(metricReadings.measuredAt, new Date(`${historyStart}T00:00:00Z`)), lte(metricReadings.measuredAt, new Date(`${op.periodEnd}T23:59:59Z`)))).orderBy(asc(metricReadings.measuredAt)),
         db().select().from(athleteContext).where(and(eq(athleteContext.athleteId, op.athleteId), eq(athleteContext.active, true), inArray(athleteContext.kind, ["goal", "event"]))),
         db().select().from(reviews).where(and(eq(reviews.athleteId, op.athleteId), lte(reviews.periodStart, op.periodEnd), gte(reviews.periodEnd, op.periodStart))).orderBy(desc(reviews.periodEnd)),
         db().select().from(observations).where(and(eq(observations.athleteId, op.athleteId), eq(observations.active, true))).orderBy(desc(observations.updatedAt)),
+        db().select().from(setActuals).where(eq(setActuals.athleteId, op.athleteId)).orderBy(asc(setActuals.updatedAt)),
       ]);
-      const scopedWorkouts = workoutRows.filter(w => planRows.some(p => p.id === w.planId));
-      const counts = { planned: 0, completed: 0, partial: 0, skipped: 0, missed: 0, inProgress: 0 };
-      for (const plan of planRows) counts.planned += planPayloadSchema.parse((await getPlanState(op.athleteId, plan.id)).current.payload).sessions.length;
-      for (const workout of scopedWorkouts) {
-        if (workout.status === "completed") counts.completed++;
-        else if (workout.status === "partial") counts.partial++;
-        else if (workout.status === "skipped") counts.skipped++;
-        else if (workout.status === "missed") counts.missed++;
-        else if (workout.status === "in_progress") counts.inProgress++;
-      }
-      const modality = ["strength", "run", "cycle"].map(kind => ({ kind, workouts: scopedWorkouts.filter(w => w.modality === kind).map(w => ({ id: w.id, status: w.status, actual: w.actual, feedback: w.feedback, completedAt: w.completedAt })) }));
-      return { schemaVersion: "1.0", athleteId: op.athleteId, period: { start: op.periodStart, end: op.periodEnd }, factualSummary: counts, modality, metrics: readingRows, goalsAndEvents: contextRows, coachReviews: reviewRows, activeObservations: observationRows, evidenceSufficient: planRows.length > 0 || readingRows.length > 0 };
+      const periodPlans = await Promise.all(periodPlanRows.map(async plan => {
+        const state = await getPlanState(op.athleteId, plan.id);
+        return { id: plan.id, weekStart: plan.weekStart, status: plan.status, currentPayload: state.current.payload };
+      }));
+      const historyPlanIds = new Set(historyPlanRows.map(plan => plan.id));
+      const periodPlanIds = new Set(periodPlanRows.map(plan => plan.id));
+      const historyWorkouts = workoutRows.filter(workout => historyPlanIds.has(workout.planId));
+      const periodWorkouts = workoutRows.filter(workout => periodPlanIds.has(workout.planId));
+      const planReality = buildPlanReality(periodPlans, periodWorkouts);
+      const factualSummary = summarisePlanReality(planReality);
+      const metricSeries = buildMetricSeries(definitionRows, readingRows);
+      const strengthAnchors = buildStrengthAnchors(historyWorkouts, setRows);
+      const periodStartAt = new Date(`${op.periodStart}T00:00:00Z`);
+      const periodEndAt = new Date(`${op.periodEnd}T23:59:59Z`);
+      const periodReadings = readingRows.filter(reading => reading.measuredAt >= periodStartAt && reading.measuredAt <= periodEndAt);
+      const modalityKinds = Array.from(new Set(periodWorkouts.map(workout => workout.modality))).sort();
+      const modality = modalityKinds.map(kind => ({
+        kind,
+        workouts: periodWorkouts.filter(workout => workout.modality === kind).map(workout => ({
+          id: workout.id,
+          status: workout.status,
+          actual: workout.actual,
+          feedback: workout.feedback,
+          completedAt: workout.completedAt,
+        })),
+      }));
+      return {
+        schemaVersion: "1.1",
+        athleteId: op.athleteId,
+        period: { start: op.periodStart, end: op.periodEnd },
+        history: { start: historyStart, end: op.periodEnd },
+        factualSummary,
+        planReality,
+        modality,
+        metrics: periodReadings,
+        metricSeries,
+        strengthAnchors,
+        goalsAndEvents: contextRows,
+        coachReviews: reviewRows,
+        activeObservations: observationRows,
+        evidenceSufficient: planReality.length > 0 || metricSeries.some(series => series.readings.length > 0) || strengthAnchors.length > 0,
+      };
     }
     case "createReview": return idempotent(op, async () => {
       await ensureAthlete(op.athleteId);
