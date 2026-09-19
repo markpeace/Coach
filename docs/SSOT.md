@@ -36,6 +36,7 @@ If sources conflict, surface the conflict rather than silently choosing a lower-
 - `docs/architecture/mvp-technical-contract.md`: MVP v1 implementation/access/API contract; retain for compatibility/history where not superseded.
 - `docs/architecture/implemented-mvp.md`: delivered MVP v1 technical shape.
 - `docs/architecture/private-mcp-plugin.md`: private OAuth-protected ChatGPT MCP integration.
+- `docs/architecture/chatgpt-plugin-packaging.md`: Preview/Production plugin identity, canonical Skill packaging and existing-app binding.
 - `docs/architecture/coach-skill.md`: MVP v2 skill/MCP/domain responsibility split and skill packaging decision.
 - `skills/coach/SKILL.md`: versioned Coach behavioural operating model.
 - `skills/coach/references/behavioral-acceptance.md`: behavioural scenarios used to detect conversational regressions.
@@ -56,7 +57,8 @@ MVP v2 priorities currently include:
 - explicit Coach skill / behavioural contract;
 - safe non-destructive evolution of live athlete data;
 - structured decision traces and athlete diagnostic export;
-- richer modality-appropriate evidence ingestion;
+- repository-owned Coach Preview plugin packaging and integrated Skill/app validation;
+- automatic training-evidence ingestion is deferred to the separate post-MVP pathway;
 - selective progress visualisation;
 - integrated real-use validation.
 

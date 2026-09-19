@@ -53,9 +53,29 @@ After deployment:
 5. Valid web and Action calls reach the dedicated Neon database.
 6. The Playwright MVP loop passes at mobile and desktop widths.
 
+## ChatGPT environment identity
+
+During MVP validation:
+
+- ChatGPT plugin: **Coach Preview**
+- registered workspace app: `asdk_app_6aa945279bc081919c667652d14c5646`, intended display name **Coach Preview MCP**
+- MCP host: `https://coach-git-preview-coach-mvp-owner-mark-peaces-projects-a5248ac1.vercel.app/mcp`
+- web host: the same stable owner-test branch alias
+- database: the real persistent Coach ledger, treated as production-like state
+
+The repository root is the **Coach Preview** plugin package because the canonical `skills/coach/SKILL.md` already lives under its root `skills/` directory.
+
+The plugin references the registered workspace app through `.app.json`. Do not declare another MCP server in `mcp.json`, `.mcp.json` or inline plugin configuration.
+
+The GitHub-importable marketplace lives at `.agents/plugins/marketplace.json`.
+
+See `docs/architecture/chatgpt-plugin-packaging.md`.
+
 ## Production
 
-Production is intentionally unconfigured/unpromoted for this MVP handback. Owner validation and reconciliation in CCH-27/28 precede any production-release decision.
+Production is intentionally unconfigured/unpromoted during integrated MVP v2 validation. The names **Coach** and **Coach MCP** are reserved for the later production plugin and production workspace app.
+
+A production release requires a separate explicit decision after validation/reconciliation. Create/configure the production Vercel endpoint first, then create **Coach MCP** against that endpoint, then bind the **Coach** plugin to that production app while reusing the same canonical Skill. Do not repoint **Coach Preview MCP** to Production.
 
 
 ## Private ChatGPT MCP surface

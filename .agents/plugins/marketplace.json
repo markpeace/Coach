@@ -1,0 +1,15 @@
+{
+  "name": "coach-plugins",
+  "interface": {
+    "displayName": "Coach plugins"
+  },
+  "plugins": [
+    {
+      "name": "coach-preview",
+      "source": {
+        "source": "local",
+        "path": "./"
+      }
+    }
+  ]
+}

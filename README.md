@@ -43,6 +43,7 @@ The original **First MVP: Persistent personal coach** project remains the live v
 - [`skills/coach/SKILL.md`](skills/coach/SKILL.md)
 - [`docs/architecture/coach-skill.md`](docs/architecture/coach-skill.md)
 - [`docs/architecture/private-mcp-plugin.md`](docs/architecture/private-mcp-plugin.md)
+- [`docs/architecture/chatgpt-plugin-packaging.md`](docs/architecture/chatgpt-plugin-packaging.md)
 - [`docs/architecture/system-architecture.md`](docs/architecture/system-architecture.md)
 - [`docs/operations/setup-and-deployment.md`](docs/operations/setup-and-deployment.md)
 - [`docs/product/product-definition.md`](docs/product/product-definition.md)
@@ -76,6 +77,8 @@ Athlete
 The governing principle is **LLM-reasoned and code-grounded**. The model supplies coaching judgement and semantic interpretation. The skill guides the conversational workflow. Code owns trusted identity boundaries, durable facts, plans, actuals, metrics, validation, provenance and state history.
 
 The legacy `gpt/` package remains migration/history material; OpenAPI Actions are not the supported conversational surface.
+
+During MVP validation the user-facing ChatGPT package is **Coach Preview**. Its repository manifest includes the canonical Coach Skill and references the existing registered Preview workspace app. **Coach** and **Coach MCP** are reserved for the later production release.
 
 ## Live-data safety
 

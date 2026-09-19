@@ -4,10 +4,13 @@ Status: Current
 
 ## Decision
 
-Coach's supported conversational surface is a **private ChatGPT MCP app** backed by the existing Coach domain service and Neon ledger. MVP v2 adds a repository-owned Agent Skill above that app so behavioural coaching guidance is explicit and versioned without duplicating server-enforced trust rules.
+Coach's supported conversational capability surface is a **private ChatGPT MCP app** backed by the existing Coach domain service and Neon ledger. During MVP v2 validation, a repository-owned **Coach Preview** plugin carries the canonical Coach Skill and references that registered Preview app rather than declaring a second MCP server.
 
 ```text
-ChatGPT + Coach skill
+Coach Preview plugin
+  + repository-owned Coach skill
+        ↓
+registered Preview workspace app
         ↓
 OAuth-protected /mcp
         ↓
@@ -24,7 +27,7 @@ The web app continues to call the same domain service through `/api/v1/action`. 
 - **MCP tools:** bounded read/write capabilities and operation-specific semantics.
 - **Domain/server:** authentication boundaries, athlete isolation, validation, idempotency, versions/conflicts and durable-state invariants.
 
-See `docs/architecture/coach-skill.md` and `skills/coach/SKILL.md`.
+See `docs/architecture/coach-skill.md`, `docs/architecture/chatgpt-plugin-packaging.md` and `skills/coach/SKILL.md`.
 
 ## MCP transport
 
@@ -78,6 +81,14 @@ The model must still:
 - never claim writes succeeded when a tool returned an error;
 - avoid exhaustive onboarding or unnecessary context reads;
 - never persist hidden chain-of-thought.
+
+## Plugin/app environment identity
+
+During validation the user-facing plugin is **Coach Preview**. It references registered app `asdk_app_6aa945279bc081919c667652d14c5646`, whose intended workspace display name is **Coach Preview MCP**.
+
+**Coach** and **Coach MCP** are reserved for a later production release. Do not turn the Preview integration into Production by repointing its endpoint.
+
+The plugin binds the registered workspace app through `.app.json`. Do not add plugin-local `mcp.json`, `.mcp.json` or an inline MCP declaration: the registered app already owns OAuth, workspace access, action controls and the MCP connection.
 
 ## Deployment
 
