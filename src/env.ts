@@ -2,7 +2,7 @@ import { z } from "zod";
 
 const envSchema = z.object({
   DATABASE_URL: z.string().url(),
-  HOUSEHOLD_PASSPHRASE: z.string().min(10),
+  HOUSEHOLD_PASSPHRASE: z.string().min(7),
   SESSION_SECRET: z.string().min(32),
   GPT_ACTION_API_KEY: z.string().min(24),
   NEXT_PUBLIC_APP_URL: z.string().url().optional(),
