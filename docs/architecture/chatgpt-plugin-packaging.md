@@ -1,6 +1,6 @@
 # ChatGPT plugin packaging
 
-Status: Current for MVP v2 Preview
+Status: Packaging prepared; ChatGPT Build import and integrated use unverified
 
 ## Decision
 
@@ -42,13 +42,13 @@ The repository root is the **Coach Preview** plugin root.
 
 Files:
 
-- `plugin.json`: portable Agent Plugins manifest;
+- `.codex-plugin/plugin.json`: current Codex/ChatGPT plugin manifest;
 - `.app.json`: required reference to the existing registered Preview app;
 - `skills/coach/SKILL.md`: canonical Coach behavioural Skill;
 - `skills/coach/references/behavioral-acceptance.md`: behavioural validation scenarios;
-- `.agents/plugins/marketplace.json`: GitHub-importable workspace marketplace containing the root Coach Preview plugin.
+- `.agents/plugins/marketplace.json`: proposed workspace marketplace containing the root Coach Preview plugin; import remains unverified.
 
-The portable manifest points `extensions.com.openai.apps` to `./.app.json`. Portable packages discover Skills from the root `skills/` directory automatically.
+The manifest explicitly points `apps` to `./.app.json` and `skills` to `./skills/`. The Skill is read directly from the repository directory; no independently editable Build copy should be maintained. After any Skill change, sync/reinstall the plugin from its canonical GitHub source and verify the installed version before relying on the new behaviour.
 
 This keeps `skills/coach/SKILL.md` as the only editable behavioural source and avoids a second plugin-specific copy.
 
@@ -73,7 +73,7 @@ The app reference is:
 
 The app ID is not a credential. The reference does not create an app, grant permissions or bypass authentication. Workspace app access, OAuth and action controls remain authoritative.
 
-The app is currently still returned by ChatGPT management as **Coach**. CCH-40 intends to rename it in place to **Coach Preview MCP** if the current admin UI permits this. Do not delete/recreate the app merely to achieve the name without first preserving the working OAuth/tool configuration.
+The same app ID is now displayed as **Coach Preview MCP**. Its existing OAuth connection and app-specific **Allow all actions** setting were observed on 19 September 2026.
 
 ## Why there is no mcp.json
 
@@ -89,9 +89,9 @@ The repository marketplace lives at:
 
 `.agents/plugins/marketplace.json`
 
-It contains one local source entry for `coach-preview`, pointing to the repository root.
+It contains one local source entry for `coach-preview`, intended to point to the repository root. Source-path resolution remains to be verified in Build.
 
-Workspace import uses the GitHub repository URL and the CCH-40 branch while validating packaging. After CCH-40 is accepted and reconciled, future sync should use the authoritative branch chosen by the product owner rather than an implementation branch.
+The exact GitHub marketplace import route and root-relative source path still need to be exercised in ChatGPT Build. The current Work tool registry has no callable Build/import/install tool, so repository packaging alone is not evidence of an installed integrated plugin. After a successful import, pin the installed source/commit and record the plugin ID in CCH-40. Future sync should use the authoritative branch chosen after acceptance.
 
 Importing/syncing plugin content does not alter the referenced app's existing permissions or authentication.
 
@@ -118,10 +118,9 @@ Repository packaging is complete once the current package imports successfully.
 
 The remaining workspace actions are deliberately small:
 
-1. rename the existing custom app from **Coach** to **Coach Preview MCP** if the admin UI supports in-place rename;
-2. import the GitHub marketplace from the CCH-40 branch;
-3. verify **Coach Preview** shows the Coach Skill and required existing app;
-4. install/enable it for the owner;
-5. run a representative read-only coaching check and confirm the stable Preview MCP app still authenticates normally.
+1. import the GitHub marketplace/package from the CCH-40 branch using the current Build workflow;
+2. verify **Coach Preview** shows the Coach Skill and required existing app;
+3. install/enable it for the owner;
+4. run a representative read-only coaching check and confirm the stable Preview MCP app still authenticates normally.
 
 Do not retire any existing working integration until the imported **Coach Preview** plugin is proven.

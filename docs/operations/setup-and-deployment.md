@@ -57,8 +57,8 @@ After deployment:
 
 During MVP validation:
 
-- ChatGPT plugin: **Coach Preview**
-- registered workspace app: `asdk_app_6aa945279bc081919c667652d14c5646`, intended display name **Coach Preview MCP**
+- ChatGPT plugin: **Coach Preview** (repository package prepared; workspace import and integrated use pending verification)
+- registered workspace app: `asdk_app_6aa945279bc081919c667652d14c5646`, current display name **Coach Preview MCP**
 - MCP host: `https://coach-git-preview-coach-mvp-owner-mark-peaces-projects-a5248ac1.vercel.app/mcp`
 - web host: the same stable owner-test branch alias
 - database: the real persistent Coach ledger, treated as production-like state
@@ -67,7 +67,7 @@ The repository root is the **Coach Preview** plugin package because the canonica
 
 The plugin references the registered workspace app through `.app.json`. Do not declare another MCP server in `mcp.json`, `.mcp.json` or inline plugin configuration.
 
-The GitHub-importable marketplace lives at `.agents/plugins/marketplace.json`.
+The proposed GitHub marketplace lives at `.agents/plugins/marketplace.json`; exercise its import and source-path resolution before calling the plugin installed.
 
 See `docs/architecture/chatgpt-plugin-packaging.md`.
 

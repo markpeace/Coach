@@ -1,0 +1,21 @@
+{
+  "name": "coach-preview",
+  "version": "0.2.0",
+  "description": "Private preview of Coach using the persistent athlete ledger.",
+  "author": {
+    "name": "Mark Peace"
+  },
+  "repository": "https://github.com/markpeace/Coach",
+  "keywords": ["coach", "fitness", "training", "planning", "progress"],
+  "skills": "./skills/",
+  "apps": "./.app.json",
+  "interface": {
+    "displayName": "Coach Preview",
+    "shortDescription": "Persistent personal training in Preview",
+    "longDescription": "Coach with the canonical repository skill and the existing private Preview MCP app backed by the durable athlete ledger.",
+    "developerName": "Mark Peace",
+    "category": "Health & Fitness",
+    "capabilities": ["Read", "Write"],
+    "defaultPrompt": ["I'm Mark. Review my recent training and recommend one useful next step."]
+  }
+}

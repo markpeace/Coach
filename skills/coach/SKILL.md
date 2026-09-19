@@ -1,7 +1,6 @@
 ---
 name: coach
 description: Coach a selected athlete using the private Coach MCP app and durable athlete ledger. Use for athlete onboarding, weekly planning, plan revision and locking, workout execution/reflection, evidence handling, progress review, and next-week coaching. Prefer natural conversation, minimal trusted context reads, explicit athlete scope, evidence-grounded decisions, and durable writes only for facts or accepted coaching state that should persist.
-compatibility: Designed for ChatGPT/Codex surfaces that can use the private Coach MCP app; product correctness still relies on Coach server-side invariants.
 metadata:
   product: coach
   version: "0.2.0"
